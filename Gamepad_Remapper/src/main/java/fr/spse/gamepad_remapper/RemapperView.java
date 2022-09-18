@@ -4,6 +4,7 @@ import static android.view.InputDevice.KEYBOARD_TYPE_ALPHABETIC;
 import static android.view.InputDevice.SOURCE_DPAD;
 import static android.view.InputDevice.SOURCE_GAMEPAD;
 import static android.view.InputDevice.SOURCE_JOYSTICK;
+import static android.view.KeyEvent.KEYCODE_DPAD_CENTER;
 import static android.view.KeyEvent.KEYCODE_DPAD_DOWN;
 import static android.view.KeyEvent.KEYCODE_DPAD_LEFT;
 import static android.view.KeyEvent.KEYCODE_DPAD_RIGHT;
@@ -23,6 +24,7 @@ import static android.view.MotionEvent.AXIS_Y;
 import static android.view.MotionEvent.AXIS_Z;
 
 import static fr.spse.gamepad_remapper.Remapper.AXIS_NONE;
+import static fr.spse.gamepad_remapper.Remapper.DPAD_CENTER;
 import static fr.spse.gamepad_remapper.Remapper.transformKeyEventInput;
 
 import android.annotation.SuppressLint;
@@ -56,7 +58,8 @@ public class RemapperView extends TextView {
     private boolean isListening = true;
 
     /* Map from one input to another */
-    private final Map<Integer, Integer> inputMap = new ArrayMap<>();
+    private final Map<Integer, Integer> inputMapKeys = new ArrayMap<>();
+    private final Map<Integer, Integer> inputMapMotions = new ArrayMap<>();
 
     /* Array of inputs to remap, initialized by the $Builder */
     protected List<Integer> inputList = new ArrayList<>();
@@ -99,8 +102,7 @@ public class RemapperView extends TextView {
 
         theme.resolveAttribute(android.R.attr.colorAccent, typedValue, true);
         enabledColor = typedValue.data;
-        theme.resolveAttribute(android.R.attr.colorButtonNormal, typedValue, true);
-        disabledColor = typedValue.data;
+        disabledColor = Color.LTGRAY;
         theme.resolveAttribute(android.R.attr.colorBackground, typedValue, true);
         backgroundColor = typedValue.data;
 
@@ -123,7 +125,7 @@ public class RemapperView extends TextView {
                 if(keyEvent.getKeyCode() == KEYCODE_UNKNOWN) return true;
                 if(isGamepadDevice(keyEvent.getDevice()) || isGamepadKeyEvent(keyEvent)){
                     //TODO handle the keyevent
-                    inputMap.put(transformKeyEventInput(keyEvent.getKeyCode()),inputList.get(index));
+                    inputMapKeys.put(keyEvent.getKeyCode(),inputList.get(index));
 
 
                     incrementMappedPointer();
@@ -143,9 +145,9 @@ public class RemapperView extends TextView {
 
                     int axis = findTriggeredAxis(motionEvent);
                     // HAT axis will be captured as key events
-                    if(axis == AXIS_NONE) return false;
+                    if(axis == AXIS_NONE) return true;
                     //TODO handle the keyevent
-                    inputMap.put(axis, inputList.get(index));
+                    inputMapMotions.put(axis, inputList.get(index));
 
                     incrementMappedPointer();
                 }
@@ -175,7 +177,7 @@ public class RemapperView extends TextView {
                 mCurrentIconDrawable = getResources().getDrawable(drawableList.get(index));
             }
         }else{
-            listener.onRemapDone(new Remapper(inputMap));
+            listener.onRemapDone(new Remapper(inputMapKeys, inputMapMotions));
             destroy();
         }
 
@@ -189,18 +191,11 @@ public class RemapperView extends TextView {
     }
 
     private static int findTriggeredAxis(MotionEvent event){
-        for(int axis : new int[]{AXIS_RX, AXIS_RY, AXIS_X, AXIS_Y, AXIS_Z, AXIS_RZ, AXIS_BRAKE, AXIS_THROTTLE, AXIS_RTRIGGER, AXIS_LTRIGGER}){
+        for(int axis : new int[]{AXIS_HAT_X, AXIS_HAT_Y, AXIS_RX, AXIS_RY, AXIS_X, AXIS_Y, AXIS_Z, AXIS_RZ, AXIS_BRAKE, AXIS_THROTTLE, AXIS_RTRIGGER, AXIS_LTRIGGER}){
             if(event.getAxisValue(axis) >= 0.85){
                 return axis;
             }
         }
-        if(Remapper.transformMotionEventInput(event, AXIS_HAT_X) != AXIS_NONE){
-            return Remapper.transformMotionEventInput(event, AXIS_HAT_X);
-        }
-        if(Remapper.transformMotionEventInput(event, AXIS_HAT_Y) != AXIS_NONE){
-            return Remapper.transformMotionEventInput(event, AXIS_HAT_Y);
-        }
-
         return AXIS_NONE;
     }
 
@@ -450,18 +445,18 @@ public class RemapperView extends TextView {
                 view.textList.add(R.string.bind_process_press_trigger_right);
             }
             if(remapDpad){
-                view.inputList.add(KEYCODE_DPAD_UP);
+                //view.inputList.add(KEYCODE_DPAD_UP);
                 view.inputList.add(KEYCODE_DPAD_RIGHT);
                 view.inputList.add(KEYCODE_DPAD_DOWN);
-                view.inputList.add(KEYCODE_DPAD_LEFT);
-                view.drawableList.add(R.drawable.dpad_up);
+                //view.inputList.add(KEYCODE_DPAD_LEFT);
+                //view.drawableList.add(R.drawable.dpad_up);
                 view.drawableList.add(R.drawable.dpad_right);
                 view.drawableList.add(R.drawable.dpad_down);
-                view.drawableList.add(R.drawable.dpad_left);
-                view.textList.add(R.string.bind_process_press_dpad_up);
+                //view.drawableList.add(R.drawable.dpad_left);
+                //view.textList.add(R.string.bind_process_press_dpad_up);
                 view.textList.add(R.string.bind_process_press_dpad_right);
                 view.textList.add(R.string.bind_process_press_dpad_down);
-                view.textList.add(R.string.bind_process_press_dpad_left);
+                //view.textList.add(R.string.bind_process_press_dpad_left);
             }
 
             return view;

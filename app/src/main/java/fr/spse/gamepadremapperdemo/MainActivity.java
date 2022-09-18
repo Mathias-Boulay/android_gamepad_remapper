@@ -1,7 +1,7 @@
 package fr.spse.gamepadremapperdemo;
 
-import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -11,7 +11,7 @@ import android.widget.Toast;
 import fr.spse.gamepad_remapper.Remapper;
 import fr.spse.gamepad_remapper.RemapperView;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
     private Remapper remapper;
 
@@ -25,6 +25,8 @@ public class MainActivity extends AppCompatActivity {
                     public void onRemapDone(Remapper remapper) {
                         Toast.makeText(getBaseContext(), "Mapping done !", Toast.LENGTH_LONG).show();
                         MainActivity.this.remapper = remapper;
+
+                        //remapper.save(getApplicationContext());
                     }
                 })
                         .remapA(true)
@@ -55,9 +57,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
-        if(Remapper.findTriggeredAxis(event) == Remapper.AXIS_NONE) return false;
+        int mappedSource = remapper.getRemappedSource(event, MotionEvent.AXIS_HAT_X);
+        float mappedValue = remapper.getRemappedValue(mappedSource, event);
 
-        System.out.println( MotionEvent.axisToString(Remapper.findTriggeredAxis(event)) + "->");
+
+        System.out.println("mapped source: " + MotionEvent.axisToString(mappedSource) + "/" + KeyEvent.keyCodeToString(mappedSource) + "  mapped value: " + mappedValue);
 
         return true; //return super.onGenericMotionEvent(event);
     }
