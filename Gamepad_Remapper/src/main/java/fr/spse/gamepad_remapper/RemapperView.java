@@ -27,9 +27,15 @@ import static fr.spse.gamepad_remapper.Remapper.transformKeyEventInput;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.drawable.Drawable;
 import android.util.ArrayMap;
 import android.util.AttributeSet;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -55,18 +61,51 @@ public class RemapperView extends TextView {
     /* Array of inputs to remap, initialized by the $Builder */
     protected List<Integer> inputList = new ArrayList<>();
 
+    /* All drawables that will be showed during the binding phase */
+    protected List<Integer> drawableList = new ArrayList<>();
+
+    /* All strings that will be displayed during the binding phase */
+    protected List<Integer> textList = new ArrayList<>();
+
     /* Points to whatever input has to be mapped */
     private int index = -1;
 
     /* Allow to pass down the mapper */
     private Listener listener;
 
+    /* Colors nicely used to display state */
+    private final int backgroundColor, disabledColor, enabledColor;
+
+    private Drawable mCurrentIconDrawable = null;
+
+    /* Visual parameters */
+    private final float cornerRadius = 15f;
+    private final int verticalMargin = 80;
+    private final int horizontalMargin = 40;
+
 
     /** Only meant to be used through the $Builder class */
     public RemapperView(ViewGroup parent, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(parent.getContext(), attrs, defStyleAttr, defStyleRes);
         // Auto display yourself
-        parent.addView(this, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        ViewGroup.LayoutParams params = new ViewGroup.MarginLayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        parent.addView(this, params);
+        setGravity(Gravity.CENTER_HORIZONTAL|Gravity.BOTTOM);
+        setPadding(0, 0 ,0, 80 + verticalMargin);
+
+
+        TypedValue typedValue = new TypedValue();
+        Resources.Theme theme = parent.getContext().getTheme();
+
+        theme.resolveAttribute(android.R.attr.colorAccent, typedValue, true);
+        enabledColor = typedValue.data;
+        theme.resolveAttribute(android.R.attr.colorButtonNormal, typedValue, true);
+        disabledColor = typedValue.data;
+        theme.resolveAttribute(android.R.attr.colorBackground, typedValue, true);
+        backgroundColor = typedValue.data;
+
+        setElevation(25);
+
 
         post(this::init);
     }
@@ -104,7 +143,7 @@ public class RemapperView extends TextView {
 
                     int axis = findTriggeredAxis(motionEvent);
                     // HAT axis will be captured as key events
-                    if(axis == AXIS_NONE) return true;
+                    if(axis == AXIS_NONE) return false;
                     //TODO handle the keyevent
                     inputMap.put(axis, inputList.get(index));
 
@@ -131,8 +170,9 @@ public class RemapperView extends TextView {
             if(isListening){
                 ++index;
 
-                postDelayed(() -> isListening = true, 1000);
-                setText("Listening for " + KeyEvent.keyCodeToString(inputList.get(index)) + "/" + MotionEvent.axisToString(inputList.get(index)));
+                postDelayed(() -> isListening = true, 800);
+                setText(getResources().getString(textList.get(index)));
+                mCurrentIconDrawable = getResources().getDrawable(drawableList.get(index));
             }
         }else{
             listener.onRemapDone(new Remapper(inputMap));
@@ -150,14 +190,60 @@ public class RemapperView extends TextView {
 
     private static int findTriggeredAxis(MotionEvent event){
         for(int axis : new int[]{AXIS_RX, AXIS_RY, AXIS_X, AXIS_Y, AXIS_Z, AXIS_RZ, AXIS_BRAKE, AXIS_THROTTLE, AXIS_RTRIGGER, AXIS_LTRIGGER}){
-            if(event.getAxisValue(axis) >= 0.5){
+            if(event.getAxisValue(axis) >= 0.85){
                 return axis;
             }
         }
+        if(Remapper.transformMotionEventInput(event, AXIS_HAT_X) != AXIS_NONE){
+            return Remapper.transformMotionEventInput(event, AXIS_HAT_X);
+        }
+        if(Remapper.transformMotionEventInput(event, AXIS_HAT_Y) != AXIS_NONE){
+            return Remapper.transformMotionEventInput(event, AXIS_HAT_Y);
+        }
+
         return AXIS_NONE;
     }
 
+    @Override
+    public void draw(Canvas canvas) {
+        Paint paint = new Paint();
 
+        // Draw the "out of focus" window
+        paint.setColor(Color.BLACK);
+        paint.setAlpha(127);
+        canvas.drawRect(0,0,getWidth(), getHeight(), paint);
+
+        // Draw the focused window
+        paint.setAlpha(255);
+        paint.setColor(backgroundColor);
+        canvas.drawRoundRect(horizontalMargin, 2*getHeight()/3f, getWidth() - horizontalMargin, getHeight() - verticalMargin,
+                cornerRadius, cornerRadius, paint);
+
+        // Draw small circles displaying where the user is
+        paint.setStrokeWidth(20);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        float yPos = getHeight() - (getPaddingBottom() + verticalMargin)/2f;
+        float slice = (getWidth() * 0.66f)/inputList.size();
+        float offset = inputList.size() % 2 == 0 ? slice/2f : 0;
+
+        for(int i=0; i<inputList.size(); ++i){
+            float xPos = slice * i;
+            xPos += getWidth() * 0.165f + offset;
+
+            // Set appropriate paint color
+            paint.setColor(i == index ? enabledColor : disabledColor);
+
+            canvas.drawPoint(xPos, yPos, paint);
+        }
+
+        // Draw the actual control icon
+        if(mCurrentIconDrawable != null){
+            mCurrentIconDrawable.setBounds(getWidth()/2-100, (int) ((0.79f * getHeight()) - 100), getWidth()/2 + 100 , (int) ((0.79f * getHeight()) + 100));
+            mCurrentIconDrawable.draw(canvas);
+        }
+
+        super.draw(canvas);
+    }
 
 
     private static boolean isGamepadMotionEvent(MotionEvent event){
@@ -200,7 +286,7 @@ public class RemapperView extends TextView {
                 remapA, remapX, remapY, remapB,
                 remapStart, remapSelect;
 
-        private Listener listener;
+        private final Listener listener;
 
         /** The listener is required to handle when the remapping is done */
         public Builder(Listener listener){
@@ -287,48 +373,95 @@ public class RemapperView extends TextView {
             RemapperView view = new RemapperView(parent, attrs, defStyleAttr, defStyleRes);
             view.listener = listener;
 
-            if(remapA) view.inputList.add(KeyEvent.KEYCODE_BUTTON_A);
-            if(remapB) view.inputList.add(KeyEvent.KEYCODE_BUTTON_B);
-            if(remapX) view.inputList.add(KeyEvent.KEYCODE_BUTTON_X);
-            if(remapY) view.inputList.add(KeyEvent.KEYCODE_BUTTON_Y);
-            if(remapStart) view.inputList.add(KeyEvent.KEYCODE_BUTTON_START);
-            if(remapSelect) view.inputList.add(KeyEvent.KEYCODE_BUTTON_SELECT);
+            if(remapA){
+                view.inputList.add(KeyEvent.KEYCODE_BUTTON_A);
+                view.drawableList.add(R.drawable.button_a);
+                view.textList.add(R.string.bind_process_press_a);
+            }
+            if(remapB){
+                view.inputList.add(KeyEvent.KEYCODE_BUTTON_B);
+                view.drawableList.add(R.drawable.button_b);
+                view.textList.add(R.string.bind_process_press_b);
+            }
+            if(remapX){
+                view.inputList.add(KeyEvent.KEYCODE_BUTTON_X);
+                view.drawableList.add(R.drawable.button_x);
+                view.textList.add(R.string.bind_process_press_x);
+            }
+            if(remapY){
+                view.inputList.add(KeyEvent.KEYCODE_BUTTON_Y);
+                view.drawableList.add(R.drawable.button_y);
+                view.textList.add(R.string.bind_process_press_y);
+            }
+            if(remapStart){
+                view.inputList.add(KeyEvent.KEYCODE_BUTTON_START);
+                view.drawableList.add(R.drawable.button_start);
+                view.textList.add(R.string.bind_process_press_start);
+            }
+            if(remapSelect){
+                view.inputList.add(KeyEvent.KEYCODE_BUTTON_SELECT);
+                view.drawableList.add(R.drawable.button_select);
+                view.textList.add(R.string.bind_process_press_select);
+            }
             if(remapLeftJoystick){
                 view.inputList.add(AXIS_X);
                 view.inputList.add(AXIS_Y);
+                view.drawableList.add(R.drawable.stick_left);
+                view.textList.add(R.string.bind_process_move_stick_left_x);
+                view.drawableList.add(R.drawable.stick_left);
+                view.textList.add(R.string.bind_process_move_stick_left_y);
             }
-            /*
-            if(remapLeftJoystick){
-                view.inputList.add(LEFT_JOYSTICK_UP);
-                view.inputList.add(LEFT_JOYSTICK_RIGHT);
-                view.inputList.add(LEFT_JOYSTICK_DOWN);
-                view.inputList.add(LEFT_JOYSTICK_LEFT);
+            if(remapLeftJoystickButton){
+                view.inputList.add(KeyEvent.KEYCODE_BUTTON_THUMBL);
+                view.drawableList.add(R.drawable.stick_left_click);
+                view.textList.add(R.string.bind_process_press_stick_left);
             }
-
-             */
-            if(remapLeftJoystickButton) view.inputList.add(KeyEvent.KEYCODE_BUTTON_THUMBL);
-            /*
-            if(remapRightJoystick){
-                view.inputList.add(RIGHT_JOYSTICK_UP);
-                view.inputList.add(RIGHT_JOYSTICK_RIGHT);
-                view.inputList.add(RIGHT_JOYSTICK_DOWN);
-                view.inputList.add(RIGHT_JOYSTICK_LEFT);
-            }
-             */
             if(remapRightJoystick){
                 view.inputList.add(AXIS_Z);
                 view.inputList.add(AXIS_RZ);
+                view.drawableList.add(R.drawable.stick_right);
+                view.textList.add(R.string.bind_process_move_stick_right_x);
+                view.drawableList.add(R.drawable.stick_right);
+                view.textList.add(R.string.bind_process_move_stick_right_y);
             }
-            if(remapRightJoystickButton) view.inputList.add(KeyEvent.KEYCODE_BUTTON_THUMBR);
-            if(remapLeftShoulder) view.inputList.add(KeyEvent.KEYCODE_BUTTON_L1);
-            if(remapRightShoulder) view.inputList.add(KeyEvent.KEYCODE_BUTTON_R1);
-            if(remapLeftTrigger) view.inputList.add(MotionEvent.AXIS_LTRIGGER);
-            if(remapRightTrigger) view.inputList.add(MotionEvent.AXIS_RTRIGGER);
+            if(remapRightJoystickButton){
+                view.inputList.add(KeyEvent.KEYCODE_BUTTON_THUMBR);
+                view.drawableList.add(R.drawable.stick_right_click);
+                view.textList.add(R.string.bind_process_press_stick_right);
+            }
+            if(remapLeftShoulder){
+                view.inputList.add(KeyEvent.KEYCODE_BUTTON_L1);
+                view.drawableList.add(R.drawable.shoulder_left);
+                view.textList.add(R.string.bind_process_press_shoulder_left);
+            }
+            if(remapRightShoulder){
+                view.inputList.add(KeyEvent.KEYCODE_BUTTON_R1);
+                view.drawableList.add(R.drawable.shoulder_right);
+                view.textList.add(R.string.bind_process_press_shoulder_right);
+            }
+            if(remapLeftTrigger){
+                view.inputList.add(MotionEvent.AXIS_LTRIGGER);
+                view.drawableList.add(R.drawable.trigger_left);
+                view.textList.add(R.string.bind_process_press_trigger_left);
+            }
+            if(remapRightTrigger){
+                view.inputList.add(MotionEvent.AXIS_RTRIGGER);
+                view.drawableList.add(R.drawable.trigger_right);
+                view.textList.add(R.string.bind_process_press_trigger_right);
+            }
             if(remapDpad){
                 view.inputList.add(KEYCODE_DPAD_UP);
                 view.inputList.add(KEYCODE_DPAD_RIGHT);
                 view.inputList.add(KEYCODE_DPAD_DOWN);
                 view.inputList.add(KEYCODE_DPAD_LEFT);
+                view.drawableList.add(R.drawable.dpad_up);
+                view.drawableList.add(R.drawable.dpad_right);
+                view.drawableList.add(R.drawable.dpad_down);
+                view.drawableList.add(R.drawable.dpad_left);
+                view.textList.add(R.string.bind_process_press_dpad_up);
+                view.textList.add(R.string.bind_process_press_dpad_right);
+                view.textList.add(R.string.bind_process_press_dpad_down);
+                view.textList.add(R.string.bind_process_press_dpad_left);
             }
 
             return view;

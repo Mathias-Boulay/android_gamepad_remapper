@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bind_process_press_a">Waiting for the A button</string>
+    <string name="bind_process_press_b">Waiting for the B button</string>
+    <string name="bind_process_press_x">Waiting for the X button</string>
+    <string name="bind_process_press_y">Waiting for the Y button</string>
+    <string name="bind_process_press_select">Waiting for the SELECT button</string>
+    <string name="bind_process_press_start">Waiting for the START button</string>
+    <string name="bind_process_press_shoulder_left">Waiting for the LEFT SHOULDER button</string>
+    <string name="bind_process_press_shoulder_right">Waiting for the RIGHT SHOULDER button</string>
+    <string name="bind_process_press_trigger_left">Waiting for the LEFT TRIGGER button</string>
+    <string name="bind_process_press_trigger_right">Waiting for the RIGHT TRIGGER button</string>
+
+    <string name="bind_process_press_dpad_up">Waiting for the DPAD UP button</string>
+    <string name="bind_process_press_dpad_right">Waiting for the DPAD RIGHT button</string>
+    <string name="bind_process_press_dpad_down">Waiting for the DPAD DOWN button</string>
+    <string name="bind_process_press_dpad_left">Waiting for the DPAD LEFT button</string>
+
+    <string name="bind_process_move_stick_left_x">Move the LEFT joystick to the RIGHT</string>
+    <string name="bind_process_move_stick_left_y">Move the LEFT joystick to the BOTTOM</string>
+    <string name="bind_process_move_stick_right_x">Move the RIGHT joystick to the RIGHT</string>
+    <string name="bind_process_move_stick_right_y">Move the RIGHT joystick to the BOTTOM</string>
+
+    <string name="bind_process_press_stick_left">Waiting for the LEFT JOYSTICK button</string>
+    <string name="bind_process_press_stick_right">Waiting for the RIGHT JOYSTICK button</string>
+
+</resources>

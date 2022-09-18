@@ -21,10 +21,16 @@ import static android.view.MotionEvent.AXIS_Y;
 import static android.view.MotionEvent.AXIS_Z;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.ArrayMap;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Iterator;
 import java.util.Map;
 
 public class Remapper {
@@ -45,6 +51,43 @@ public class Remapper {
         }
     }
 
+    /** Variant which auto loads the data from the shared preferences */
+    public Remapper(Context context){
+        mMap = new ArrayMap<>();
+        try {
+            JSONObject map = new JSONObject(context.getSharedPreferences("remapper_preference", Context.MODE_PRIVATE)
+                    .getString("default_map", ""));
+
+            Iterator<String> keysItr = map.keys();
+            while (keysItr.hasNext()) {
+                String key = keysItr.next();
+                int value = map.getInt(key);
+                mMap.put(Integer.valueOf(key), value);
+            }
+
+        } catch (JSONException e) {
+            Log.e(Remapper.class.toString(), "Failed to load from shared preferences");
+        }
+
+        for(Map.Entry<Integer, Integer> entry : mMap.entrySet()){
+            mReverseMap.put(entry.getValue(), entry.getKey());
+        }
+    }
+
+    /** Saves the remapper data inside its own shared preference */
+    public void save(Context context){
+        SharedPreferences preferences = context.getSharedPreferences("remapper_preference", Context.MODE_PRIVATE);
+        JSONObject map = new JSONObject();
+        for(Map.Entry<Integer, Integer> entry : mMap.entrySet()){
+            try {
+                map.put(String.valueOf(entry.getKey()), entry.getValue());
+            } catch (JSONException e) {
+                Log.e(Remapper.class.toString(), "Failed to save to shared preferences");
+            }
+        }
+        preferences.edit().putString("default_map", map.toString()).apply();
+    }
+
 
     /** If remapped, get the mapped source from keyEvent */
     public int getRemappedSource(KeyEvent event){
@@ -54,6 +97,9 @@ public class Remapper {
 
     /** If remapped, get the mapped source from MotionEvent */
     public int getRemappedSource(MotionEvent event, int axisSource){
+        if(axisSource == AXIS_HAT_Y || axisSource == AXIS_HAT_X){
+            axisSource = transformMotionEventInput(event, axisSource);
+        }
         Integer mappedValue = mMap.get(axisSource);
         return mappedValue == null ? axisSource : mappedValue;
     }
@@ -112,6 +158,25 @@ public class Remapper {
         if(keycode == KEYCODE_DPAD_DOWN) return DPAD_DOWN;
         if(keycode == KEYCODE_DPAD_LEFT) return DPAD_LEFT;
         return keycode;
+    }
+
+    /** Changes the dpad value by another value with the same meaning.
+     * It is done because some axis share the same value as KEYCODE_DPAD_XX
+     * @param event The event to transform
+     * @param axis The axis to observe
+     */
+    public static int transformMotionEventInput(MotionEvent event, int axis){
+        if(axis == AXIS_HAT_X){
+            if(event.getAxisValue(axis) >= 0.85) return DPAD_RIGHT;
+            if(event.getAxisValue(axis) <= -0.85) return DPAD_LEFT;
+        }
+
+        if(axis == AXIS_HAT_Y){
+            if(event.getAxisValue(axis) >= 0.85) return DPAD_DOWN;
+            if(event.getAxisValue(axis) <= -0.85) return DPAD_UP;
+        }
+
+        return AXIS_NONE;
     }
 }
 
