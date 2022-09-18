@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
                         .remapB(true)
                         .remapX(true)
                         .remapY(true)
-                /*
+
                         .remapDpad(true)
                         .remapLeftJoystick(true)
                         .remapRightJoystick(true)
@@ -39,22 +39,26 @@ public class MainActivity extends AppCompatActivity {
                         .remapSelect(true)
                         .remapLeftShoulder(true)
                         .remapRightShoulder(true)
+                        .remapLeftTrigger(true)
+                        .remapRightTrigger(true)
 
-                 */
+
                         .build( findViewById(R.id.main_layout), null, 0, 0);
 
     }
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        Toast.makeText(this, KeyEvent.keyCodeToString(keyCode) + "->" + KeyEvent.keyCodeToString(remapper.getRemappedSource(event)), Toast.LENGTH_SHORT).show();
+        System.out.println(KeyEvent.keyCodeToString(keyCode) + "->" + KeyEvent.keyCodeToString(remapper.getRemappedSource(event)));
         return true; //return super.onKeyUp(keyCode, event);
     }
 
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
-        System.out.println( MotionEvent.axisToString(RemapperView.findTriggeredAxis(event)) + "->");
+        if(Remapper.findTriggeredAxis(event) == Remapper.AXIS_NONE) return false;
 
-        return false; //return super.onGenericMotionEvent(event);
+        System.out.println( MotionEvent.axisToString(Remapper.findTriggeredAxis(event)) + "->");
+
+        return true; //return super.onGenericMotionEvent(event);
     }
 }

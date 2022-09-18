@@ -8,11 +8,14 @@ import static android.view.KeyEvent.KEYCODE_DPAD_DOWN;
 import static android.view.KeyEvent.KEYCODE_DPAD_LEFT;
 import static android.view.KeyEvent.KEYCODE_DPAD_RIGHT;
 import static android.view.KeyEvent.KEYCODE_DPAD_UP;
+import static android.view.KeyEvent.KEYCODE_UNKNOWN;
 import static android.view.MotionEvent.AXIS_BRAKE;
 import static android.view.MotionEvent.AXIS_HAT_X;
 import static android.view.MotionEvent.AXIS_HAT_Y;
 import static android.view.MotionEvent.AXIS_LTRIGGER;
 import static android.view.MotionEvent.AXIS_RTRIGGER;
+import static android.view.MotionEvent.AXIS_RX;
+import static android.view.MotionEvent.AXIS_RY;
 import static android.view.MotionEvent.AXIS_RZ;
 import static android.view.MotionEvent.AXIS_THROTTLE;
 import static android.view.MotionEvent.AXIS_X;
@@ -47,7 +50,7 @@ public class RemapperView extends TextView {
     private boolean isListening = true;
 
     /* Map from one input to another */
-    private Map<Integer, Integer> inputMap = new ArrayMap<>();
+    private final Map<Integer, Integer> inputMap = new ArrayMap<>();
 
     /* Array of inputs to remap, initialized by the $Builder */
     protected List<Integer> inputList = new ArrayList<>();
@@ -78,6 +81,7 @@ public class RemapperView extends TextView {
                 // First, filter potentially unwanted events
                 if(!isListening) return true;
                 if(keyEvent.getRepeatCount() > 0) return true;
+                if(keyEvent.getKeyCode() == KEYCODE_UNKNOWN) return true;
                 if(isGamepadDevice(keyEvent.getDevice()) || isGamepadKeyEvent(keyEvent)){
                     //TODO handle the keyevent
                     inputMap.put(transformKeyEventInput(keyEvent.getKeyCode()),inputList.get(index));
@@ -144,9 +148,9 @@ public class RemapperView extends TextView {
         ((ViewGroup) getParent()).removeView(this);
     }
 
-    public static int findTriggeredAxis(MotionEvent event){
-        for(int axis : new int[]{AXIS_X, AXIS_Y, AXIS_Z, AXIS_RZ, AXIS_BRAKE, AXIS_THROTTLE, AXIS_RTRIGGER, AXIS_LTRIGGER}){
-            if(Math.abs(event.getAxisValue(axis)) >= 0.5){
+    private static int findTriggeredAxis(MotionEvent event){
+        for(int axis : new int[]{AXIS_RX, AXIS_RY, AXIS_X, AXIS_Y, AXIS_Z, AXIS_RZ, AXIS_BRAKE, AXIS_THROTTLE, AXIS_RTRIGGER, AXIS_LTRIGGER}){
+            if(event.getAxisValue(axis) >= 0.5){
                 return axis;
             }
         }

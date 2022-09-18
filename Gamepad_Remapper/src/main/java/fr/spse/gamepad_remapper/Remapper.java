@@ -12,6 +12,8 @@ import static android.view.MotionEvent.AXIS_HAT_X;
 import static android.view.MotionEvent.AXIS_HAT_Y;
 import static android.view.MotionEvent.AXIS_LTRIGGER;
 import static android.view.MotionEvent.AXIS_RTRIGGER;
+import static android.view.MotionEvent.AXIS_RX;
+import static android.view.MotionEvent.AXIS_RY;
 import static android.view.MotionEvent.AXIS_RZ;
 import static android.view.MotionEvent.AXIS_THROTTLE;
 import static android.view.MotionEvent.AXIS_X;
@@ -89,6 +91,15 @@ public class Remapper {
                 || inputSource == AXIS_HAT_X || inputSource == AXIS_HAT_Y;
 
 
+    }
+
+    public static int findTriggeredAxis(MotionEvent event){
+        for(int axis : new int[]{AXIS_RX, AXIS_RY, AXIS_X, AXIS_Y, AXIS_Z, AXIS_RZ, AXIS_BRAKE, AXIS_THROTTLE, AXIS_RTRIGGER, AXIS_LTRIGGER}){
+            if(Math.abs(event.getAxisValue(axis)) >= 0.5){
+                return axis;
+            }
+        }
+        return AXIS_NONE;
     }
 
     /** Changes the dpad value by another value with the same meaning.
