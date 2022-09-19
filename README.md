@@ -38,11 +38,11 @@ To display the remapping UI to the user, use the RemapperView.Builder object:
 ```java
 new RemapperView.Builder(
 	new RemapperView.Listener() {  
-		@Override
-		public void onRemapDone(Remapper remapper) {
-			// This method is called when the user finished remapping
-			// Here, you can save the remapper instance into a file and grab a reference to it.
-			}  
+	@Override
+	public void onRemapDone(Remapper remapper) {
+		// This method is called when the user finished remapping
+		// Here, you can save the remapper instance into a file and grab a reference to it.
+		}  
 	})  
 	.remapDpad(true)  
 	.remapLeftJoystick(true)  
@@ -67,13 +67,13 @@ class MyActivity extends Activity implements GamepadHandler{
 	...
 	@Override  // Redirect KeyEvents to the remapper if one is available
 	public boolean dispatchKeyEvent(KeyEvent event) {  
-	    if(remapper == null) return super.dispatchKeyEvent(event);  
+		if(remapper == null) return super.dispatchKeyEvent(event);  
 		return remapper.handleKeyEventInput(event, this);  
 	}  
   
 	@Override  // Redirect MotionEvents to the remapper if one is available
 	public boolean dispatchGenericMotionEvent(MotionEvent event) {  
-	    if(remapper == null) return super.onGenericMotionEvent(event);  
+	    	if(remapper == null) return super.onGenericMotionEvent(event);  
 		return remapper.handleMotionEventInput(event, this);  
 	}
 	
