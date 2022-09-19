@@ -25,24 +25,32 @@ import static android.view.MotionEvent.AXIS_Z;
 
 import static fr.spse.gamepad_remapper.Remapper.AXIS_NONE;
 import static fr.spse.gamepad_remapper.Remapper.DPAD_CENTER;
-import static fr.spse.gamepad_remapper.Remapper.transformKeyEventInput;
+
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.util.ArrayMap;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.InputDevice;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -53,6 +61,9 @@ import java.util.Map;
 
 @SuppressLint("ViewConstructor")
 public class RemapperView extends TextView {
+
+    /* The dialog hosting the view, has to be dismissed upon full binding */
+    private DialogInterface dialogInterface;
 
     /* Whether or not the view is listening to events */
     private boolean isListening = true;
@@ -83,22 +94,23 @@ public class RemapperView extends TextView {
 
     /* Visual parameters */
     private final float cornerRadius = 15f;
-    private final int verticalMargin = 80;
+    private final int verticalMargin = 40;
     private final int horizontalMargin = 40;
 
 
     /** Only meant to be used through the $Builder class */
-    public RemapperView(ViewGroup parent, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(parent.getContext(), attrs, defStyleAttr, defStyleRes);
+    public RemapperView(Context context, AttributeSet attrs) {
+        super(context, attrs);
         // Auto display yourself
-        ViewGroup.LayoutParams params = new ViewGroup.MarginLayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        parent.addView(this, params);
+        ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(500, 500);
+        //parent.addView(this, params);
+        setLayoutParams(params);
         setGravity(Gravity.CENTER_HORIZONTAL|Gravity.BOTTOM);
         setPadding(0, 0 ,0, 80 + verticalMargin);
 
 
         TypedValue typedValue = new TypedValue();
-        Resources.Theme theme = parent.getContext().getTheme();
+        Resources.Theme theme = getContext().getTheme();
 
         theme.resolveAttribute(android.R.attr.colorAccent, typedValue, true);
         enabledColor = typedValue.data;
@@ -107,7 +119,6 @@ public class RemapperView extends TextView {
         backgroundColor = typedValue.data;
 
         setElevation(25);
-
 
         post(this::init);
     }
@@ -163,6 +174,9 @@ public class RemapperView extends TextView {
             }
         });
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            setFocusedByDefault(true);
+        }
         setFocusable(true);
         requestFocus();
     }
@@ -187,7 +201,7 @@ public class RemapperView extends TextView {
     /** Make the view disappear and out of focus */
     private void destroy(){
         setFocusable(false);
-        ((ViewGroup) getParent()).removeView(this);
+        dialogInterface.dismiss();
     }
 
     private static int findTriggeredAxis(MotionEvent event){
@@ -202,11 +216,6 @@ public class RemapperView extends TextView {
     @Override
     public void draw(Canvas canvas) {
         Paint paint = new Paint();
-
-        // Draw the "out of focus" window
-        paint.setColor(Color.BLACK);
-        paint.setAlpha(127);
-        canvas.drawRect(0,0,getWidth(), getHeight(), paint);
 
         // Draw the focused window
         paint.setAlpha(255);
@@ -240,12 +249,16 @@ public class RemapperView extends TextView {
         super.draw(canvas);
     }
 
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+    }
 
-    private static boolean isGamepadMotionEvent(MotionEvent event){
+    public static boolean isGamepadMotionEvent(MotionEvent event){
         return event.isFromSource(InputDevice.SOURCE_JOYSTICK) && event.getAction() == MotionEvent.ACTION_MOVE;
     }
 
-    public static boolean isDpadKeyEvent(KeyEvent event){
+    private static boolean isDpadKeyEvent(KeyEvent event){
         //return ((event.getSource() & InputDevice.SOURCE_DPAD) == InputDevice.SOURCE_DPAD) && (event.getDevice().getKeyboardType() == KEYBOARD_TYPE_NON_ALPHABETIC);
         return (event.isFromSource(SOURCE_GAMEPAD) && event.isFromSource(SOURCE_DPAD))
                 && event.getDevice().getKeyboardType() != KEYBOARD_TYPE_ALPHABETIC;
@@ -364,8 +377,11 @@ public class RemapperView extends TextView {
         }
 
         /** Build the view with the max amount of attributes, and set all the mapping to be done */
-        public RemapperView build(ViewGroup parent, AttributeSet attrs, int defStyleAttr, int defStyleRes){
-            RemapperView view = new RemapperView(parent, attrs, defStyleAttr, defStyleRes);
+        public void build(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes){
+            View fullView = LayoutInflater.from(context).inflate(R.layout.remapper_view, null);
+
+
+            RemapperView view = fullView.findViewById(R.id.remapper_view);
             view.listener = listener;
 
             if(remapA){
@@ -446,8 +462,8 @@ public class RemapperView extends TextView {
             }
             if(remapDpad){
                 //view.inputList.add(KEYCODE_DPAD_UP);
-                view.inputList.add(KEYCODE_DPAD_RIGHT);
-                view.inputList.add(KEYCODE_DPAD_DOWN);
+                view.inputList.add(AXIS_HAT_X);
+                view.inputList.add(AXIS_HAT_Y);
                 //view.inputList.add(KEYCODE_DPAD_LEFT);
                 //view.drawableList.add(R.drawable.dpad_up);
                 view.drawableList.add(R.drawable.dpad_right);
@@ -459,7 +475,22 @@ public class RemapperView extends TextView {
                 //view.textList.add(R.string.bind_process_press_dpad_left);
             }
 
-            return view;
+
+            // Once the view is built, display it via an alert dialog
+            AlertDialog dialog = new AlertDialog.Builder(context)
+                    .setView(fullView)
+                    .setCancelable(false)
+                    .create();
+
+            view.dialogInterface = dialog;
+
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            dialog.show();
+            fullView.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) (context.getResources().getDisplayMetrics().heightPixels * 0.9)));
+
+            fullView.requestFocus();
+            fullView.postDelayed(() -> fullView.requestFocus(), 500);
+
         }
     }
 }

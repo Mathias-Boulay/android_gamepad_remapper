@@ -5,6 +5,7 @@ import static android.view.KeyEvent.KEYCODE_DPAD_DOWN;
 import static android.view.KeyEvent.KEYCODE_DPAD_LEFT;
 import static android.view.KeyEvent.KEYCODE_DPAD_RIGHT;
 import static android.view.KeyEvent.KEYCODE_DPAD_UP;
+import static android.view.KeyEvent.KEYCODE_UNKNOWN;
 import static android.view.MotionEvent.ACTION_DOWN;
 import static android.view.MotionEvent.ACTION_UP;
 import static android.view.MotionEvent.AXIS_BRAKE;
@@ -129,44 +130,77 @@ public class Remapper {
     }
 
 
+    /**
+     * If the event is a valid Gamepad event, call the GamepadHandler method.
+     * @param event The current MotionEvent
+     * @param handler The handler, through which remapped inputs will be passed.
+     * @return Whether the input was handled or not.
+     */
+    public boolean handleMotionEventInput(MotionEvent event, GamepadHandler handler){
+        if(!RemapperView.isGamepadMotionEvent(event)) return false;
+
+        handler.handleGamepadInput(AXIS_HAT_X, getRemappedValue(getRemappedSource(event, AXIS_HAT_X), event));
+        handler.handleGamepadInput(AXIS_HAT_Y, getRemappedValue(getRemappedSource(event, AXIS_HAT_Y), event));
+        handler.handleGamepadInput(AXIS_X, getRemappedValue(getRemappedSource(event, AXIS_X), event));
+        handler.handleGamepadInput(AXIS_Y, getRemappedValue(getRemappedSource(event, AXIS_Y), event));
+        handler.handleGamepadInput(AXIS_RTRIGGER, getRemappedValue(getRemappedSource(event, AXIS_RTRIGGER), event));
+        handler.handleGamepadInput(AXIS_LTRIGGER, getRemappedValue(getRemappedSource(event, AXIS_LTRIGGER), event));
+        handler.handleGamepadInput(AXIS_Z, getRemappedValue(getRemappedSource(event, AXIS_Z), event));
+        handler.handleGamepadInput(AXIS_RZ, getRemappedValue(getRemappedSource(event, AXIS_RZ), event));
+        return true;
+    }
+
+    /**
+     * If the event is a valid Gamepad event, call the GamepadHandler method
+     * @param event The current KeyEvent
+     * @param handler The handler, through which remapped inputs will be passed.
+     * @return Whether the input was handled or not.
+     */
+    public boolean handleKeyEventInput(KeyEvent event, GamepadHandler handler){
+        if(!RemapperView.isGamepadKeyEvent(event)) return false;
+        if(event.getKeyCode() == KEYCODE_UNKNOWN) return false;
+        if(event.getRepeatCount() > 0) return false;
+
+        int mappedSource = getRemappedSource(event);
+        handler.handleGamepadInput(mappedSource, getRemappedValue(mappedSource, event));
+        return true;
+    }
+
+
 
 
     /** If remapped, get the mapped source from keyEvent */
-    public int getRemappedSource(KeyEvent event){
+    private int getRemappedSource(KeyEvent event){
         Integer mappedValue = keyMap.get(transformKeyEventInput(event.getKeyCode()));
         return mappedValue == null ? event.getKeyCode() : mappedValue;
     }
 
     /** If remapped, get the mapped source from MotionEvent */
-    public int getRemappedSource(MotionEvent event, int axisSource){
-        Integer mappedValue = motionMap.get(axisSource);
+    private int getRemappedSource(MotionEvent event, int axisSource){
+        Integer mappedValue = reverseMotionMap.get(axisSource);
         return mappedValue == null ? axisSource : mappedValue;
     }
 
     /** Get the converted value for the given mapped source */
-    public float getRemappedValue(int mappedSource, KeyEvent keyEvent){
-        if(isAxis(mappedSource)){
-            if(keyEvent.getAction() == KeyEvent.ACTION_DOWN || keyEvent.getAction() == KeyEvent.ACTION_MULTIPLE){
-                return 1f;
-            }
-            return 0f;
+    private float getRemappedValue(int mappedSource, KeyEvent keyEvent){
+        if(keyEvent.getAction() == KeyEvent.ACTION_DOWN || keyEvent.getAction() == KeyEvent.ACTION_MULTIPLE){
+            return 1f;
         }
-        // Else we assume it is a simple button;
-        return keyEvent.getAction();
+        return 0f;
     }
 
     /** Get the converted value for the given mapped source */
-    public float getRemappedValue(int mappedSource, MotionEvent motionEvent){
-        Integer axis = reverseMotionMap.get(mappedSource);
-        if(axis == null) axis = mappedSource;
+    private float getRemappedValue(int mappedSource, MotionEvent motionEvent){
+        //Integer axis = reverseMotionMap.get(mappedSource);
+        //if(axis == null) axis = mappedSource;
 
-        if(isAxis(axis)){
-            return motionEvent.getAxisValue(axis);
+        if(isAxis(mappedSource)){
+            return motionEvent.getAxisValue(mappedSource);
         }
 
         // Else, convert to a keyEvent action
-        return Math.abs(motionEvent.getAxisValue(axis)) >= 0.5
-                ? ACTION_DOWN : ACTION_UP;
+        return Math.abs(motionEvent.getAxisValue(mappedSource)) >= 0.5
+                ? 1 : 0;
     }
 
     /** @return Whether the input source is a **gamepad** axis. */
@@ -180,7 +214,7 @@ public class Remapper {
 
     }
 
-    public static int findTriggeredAxis(MotionEvent event){
+    private static int findTriggeredAxis(MotionEvent event){
         for(int axis : new int[]{AXIS_RX, AXIS_RY, AXIS_X, AXIS_Y, AXIS_Z, AXIS_RZ, AXIS_BRAKE, AXIS_THROTTLE, AXIS_RTRIGGER, AXIS_LTRIGGER}){
             if(Math.abs(event.getAxisValue(axis)) >= 0.5){
                 return axis;
@@ -193,7 +227,7 @@ public class Remapper {
      * It is done because some axis share the same value as KEYCODE_DPAD_XX
      * @param keycode The keycode to transform
      */
-    public static int transformKeyEventInput(int keycode){
+    private static int transformKeyEventInput(int keycode){
         if(keycode == KEYCODE_DPAD_UP) return DPAD_UP;
         if(keycode == KEYCODE_DPAD_RIGHT) return DPAD_RIGHT;
         if(keycode == KEYCODE_DPAD_DOWN) return DPAD_DOWN;
@@ -206,7 +240,7 @@ public class Remapper {
      * @param event The event to transform
      * @param axis The axis to observe
      */
-    public static int transformMotionEventInput(MotionEvent event, int axis){
+    private static int transformMotionEventInput(MotionEvent event, int axis){
         if(axis == AXIS_HAT_X){
             if(event.getAxisValue(axis) >= 0.85) return DPAD_RIGHT;
             if(event.getAxisValue(axis) <= -0.85) return DPAD_LEFT;
@@ -225,7 +259,7 @@ public class Remapper {
      * @param event The event to transform
      * @param axis The axis to observe
      */
-    public static int transformMotionEventOutput(MotionEvent event, int axis){
+    private static int transformMotionEventOutput(MotionEvent event, int axis){
         if(axis == AXIS_HAT_X){
             if(event.getAxisValue(axis) >= 0.5) return KEYCODE_DPAD_RIGHT;
             if(event.getAxisValue(axis) <= -0.5) return KEYCODE_DPAD_LEFT;
