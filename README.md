@@ -18,19 +18,19 @@ Clone this repository, and fiddle around with the demo project to see how it's m
 First, add the dependency inside the `build.gradle` file of your app module:
 
 ```css
-	dependencies {
-	    implementation 'com.github.Mathias-Boulay:android_gamepad_remapper:master-SNAPSHOT'
-	}
+dependencies {
+    implementation 'com.github.Mathias-Boulay:android_gamepad_remapper:master-SNAPSHOT'
+}
 ```
 
 If not done so already, you need to add the Jitpack repository to the root `build.gradle` file:
 ```css
-	allprojects {
-		repositories {
-			...
-			maven { url 'https://jitpack.io' }
-		}
+allprojects {
+	repositories {
+		...
+		maven { url 'https://jitpack.io' }
 	}
+}
 ```
 
 ### Step 2: Build the remapper
@@ -43,7 +43,7 @@ new RemapperView.Builder(
 			// This method is called when the user finished remapping
 			// Here, you can save the remapper instance into a file and grab a reference to it.
 			}  
-        })  
+	})  
 	.remapDpad(true)  
 	.remapLeftJoystick(true)  
 	.remapRightJoystick(true)
