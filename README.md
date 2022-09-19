@@ -171,7 +171,7 @@ public void build(Context context);
  * @param value For keycodes, 0 for released state, 1 for pressed state.  
  *              For Axis, the value of the axis. Varies between 0/1 or -1/1 depending on the axis.
  */
- void handleGamepadInput(int code, float value);
+ public void handleGamepadInput(int code, float value);
 ```
 
 </details>
