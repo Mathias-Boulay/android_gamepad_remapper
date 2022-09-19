@@ -1,5 +1,5 @@
 # Controller Remapper for Android
-[![](https://jitpack.io/v/Mathias-Boulay/android_gamepad_remapper.svg)](https://jitpack.io/#Mathias-Boulay/android_gamepad_remapper)](https://jitpack.io/#Mathias-Boulay/android_gamepad_remapper
+[![](https://jitpack.io/v/Mathias-Boulay/android_gamepad_remapper.svg)](https://jitpack.io/#Mathias-Boulay/android_gamepad_remapper)
 
 
 An incredibly easy to use, lightweight and widely compatible library to streamline the implementation of gamepads for android applications !
