@@ -59,7 +59,10 @@ public class Remapper {
         }
     }
 
-    /** Variant which auto loads the data from the shared preferences */
+    /**
+     * Load the Remapper data from the shared preferences
+     * @param context A context object, necessary to fetch SharedPreferences
+     */
     public Remapper(Context context){
         keyMap = new ArrayMap<>();
         motionMap = new ArrayMap<>();
@@ -96,8 +99,10 @@ public class Remapper {
     }
 
 
-    /** Saves the remapper data inside its own shared preference */
-
+    /**
+     * Saves the remapper data inside its own shared preference file
+     * @param context A context object, necessary to fetch SharedPreferences
+     */
     public void save(Context context){
         SharedPreferences preferences = context.getSharedPreferences("remapper_preference", Context.MODE_PRIVATE);
         JSONObject keyMap = new JSONObject();

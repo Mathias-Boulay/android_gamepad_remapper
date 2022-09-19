@@ -71,7 +71,7 @@ public class MainActivity extends Activity implements GamepadHandler {
                         .remapRightTrigger(true)
 
 
-                        .build(this, null, 0, 0);
+                        .build(this);
 
 
     }

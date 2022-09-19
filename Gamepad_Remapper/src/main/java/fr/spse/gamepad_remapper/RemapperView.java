@@ -99,15 +99,11 @@ public class RemapperView extends TextView {
 
 
     /** Only meant to be used through the $Builder class */
-    public RemapperView(Context context, AttributeSet attrs) {
+    private RemapperView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        // Auto display yourself
-        ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(500, 500);
-        //parent.addView(this, params);
-        setLayoutParams(params);
+
         setGravity(Gravity.CENTER_HORIZONTAL|Gravity.BOTTOM);
         setPadding(0, 0 ,0, 80 + verticalMargin);
-
 
         TypedValue typedValue = new TypedValue();
         Resources.Theme theme = getContext().getTheme();
@@ -296,7 +292,7 @@ public class RemapperView extends TextView {
 
         private final Listener listener;
 
-        /** The listener is required to handle when the remapping is done */
+        /** @param listener The listener to which the Remapper object is passed after remapping */
         public Builder(Listener listener){
             this.listener = listener;
         }
@@ -376,8 +372,11 @@ public class RemapperView extends TextView {
             return this;
         }
 
-        /** Build the view with the max amount of attributes, and set all the mapping to be done */
-        public void build(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes){
+        /**
+         * Build and display the remapping dialog with all the parameters set previously
+         * @param context A context object referring to the current window
+         */
+        public void build(Context context){
             View fullView = LayoutInflater.from(context).inflate(R.layout.remapper_view, null);
 
 
