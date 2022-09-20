@@ -1,4 +1,4 @@
-# Controller Remapper for Android
+# G-Mapper for Android
 [![](https://jitpack.io/v/Mathias-Boulay/android_gamepad_remapper.svg)](https://jitpack.io/#Mathias-Boulay/android_gamepad_remapper)
 
 
