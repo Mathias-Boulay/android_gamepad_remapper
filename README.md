@@ -34,8 +34,9 @@ allprojects {
 }
 ```
 
+**Next:**
 <details>
-<summary>Managed integration</summary>
+<summary><b>Managed integration</b></summary>
 
 ### Step 2: Setup the remapper
 Using the `RemapperView.Builder` object, you can configure every button to map:
@@ -84,7 +85,7 @@ With that, you're done integrating the gamepad !
 
 
 <details>
-<summary>Manual integration</summary>
+<summary><b>Manual integration</b></summary>
 
 ### Step 2: Display the remapping UI
 To display the remapping UI to the user, use the `RemapperView.Builder` object to build the `RemapperView`:
