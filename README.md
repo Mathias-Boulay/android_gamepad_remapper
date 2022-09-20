@@ -1,3 +1,4 @@
+
 # G-Mapper for Android
 [![](https://jitpack.io/v/Mathias-Boulay/android_gamepad_remapper.svg)](https://jitpack.io/#Mathias-Boulay/android_gamepad_remapper)
 
@@ -33,8 +34,60 @@ allprojects {
 }
 ```
 
-### Step 2: Build the remapper
-To display the remapping UI to the user, use the RemapperView.Builder object:
+<details>
+<summary>Managed integration</summary>
+
+### Step 2: Setup the remapper
+Using the `RemapperView.Builder` object, you can configure every button to map:
+```java
+// Here, the null parameter is the RemapperView.Listener object, not needed inside a managed integration
+new RemapperView.Builder(null)
+	.remapDpad(true)  
+	.remapLeftJoystick(true)  
+	.remapRightJoystick(true)
+	.remapLeftTrigger(true)  
+	.remapRightTrigger(true);
+```
+**Note:** The full array of remappable controls is available on the documentation below.
+
+### Step 3: Integrate into the Activity
+Inside the activity which should support gamepads:
+ - Create a `RemapperManager` instance, which will handle physical inputs.
+ - Override both dispatch functions to dispatch inputs through the `RemapperManager`.
+ - Implement the `GamepadHandler`  interface to receive unified inputs from there.
+ 
+ ```java
+class MyActivity extends Activity implements GamepadHandler {
+		// The builder argument is a RemapperView.Builder instance
+		private RemapperManager inputManager = new RemapperManager(this, builder);
+	
+	@Override  // Redirect KeyEvents to the remapper if one is available
+	public boolean dispatchKeyEvent(KeyEvent event) {  
+	    return inputManager.handleKeyEventInput(this, event, this) || super.dispatchKeyEvent(event);  
+	}  
+  
+	@Override  // Redirect MotionEvents to the remapper if one is available
+	public boolean dispatchGenericMotionEvent(MotionEvent event) {  
+	    return inputManager.handleMotionEventInput(this, event, this) || super.dispatchGenericMotionEvent(event);  
+	}
+	
+	@Override // Implement the GamepadHandler interface
+	public void handleGamepadInput(int code, float value){
+		// TODO Your code to take care of the gamepad input.
+	}
+}
+```
+The `RemapperManager` will take care of displaying the UI, saving and fetching `Remapper` data from `SharedPreference`.
+With that, you're done integrating the gamepad !
+
+</details>
+
+
+<details>
+<summary>Manual integration</summary>
+
+### Step 2: Display the remapping UI
+To display the remapping UI to the user, use the `RemapperView.Builder` object to build the `RemapperView`:
 ```java
 new RemapperView.Builder(
 	new RemapperView.Listener() {  
@@ -84,11 +137,17 @@ class MyActivity extends Activity implements GamepadHandler{
 }
 ```
 
+**Note:** You still need to handle the saving and loading said `Remapper` data. 
+Consult the FULL DOCUMENTATION for details.
+</details>
+
 # Full documentation
 <details>
 <summary>Click here to see it in all its glory !</summary>
 
 ## Remapper
+Class able to map inputs from one way or another, used to normalize inputs.
+
 ### Constructors
 ```java
 /**  
@@ -155,6 +214,11 @@ public Builder remapSelect(boolean enabled);
 ```
 
 ```java
+/** Set the listener, replacing the one set by the constructor */
+public Builder setRemapListener(RemapperView.Listener listener);
+```
+
+```java
 /**  
  * Build and display the remapping dialog with all the parameters set previously
  * @param context A context object referring to the current window  
@@ -162,12 +226,57 @@ public Builder remapSelect(boolean enabled);
 public void build(Context context);
 ```
 
+## RemapperManager
+Manager class to streamline even more the integration of gamepads  
+It auto handles displaying the mapper view and handling events.  
+ 
+Note that the compatibility with a manual integration at the same time is limited
+
+### Constructor
+```java
+/**  
+ * @param context A context for SharedPreferences. The Manager attempts to fetch an existing remapper.  
+ * @param builder Builder with all the params set in. Note that the listener is going to be overridden.  
+ */
+ public RemapperManager(Context context, RemapperView.Builder builder);
+```
+
+### Functions
+```java
+/**  
+ * If the event is a valid Gamepad event and a remapper is available, call the GamepadHandler method 
+ * Will automatically ask to remap if no remapper is available 
+ * @param event The current MotionEvent  
+ * @param handler The handler, through which remapped inputs will be passed.  
+ * @return Whether the input was handled or not.  
+ */
+public boolean handleMotionEventInput(Context context, MotionEvent event, GamepadHandler handler);
+```
+```java
+/**  
+ * If the event is a valid Gamepad event and a remapper is available, call the GamepadHandler method 
+ * Will automatically ask to remap if no remapper is available
+ * @param event The current KeyEvent  
+ * @param handler The handler, through which remapped inputs will be passed.  
+ * @return Whether the input was handled or not.  
+ */
+ public boolean handleKeyEventInput(Context context, KeyEvent event, GamepadHandler handler);
+```
+
 ## Interface - GamepadHandler
 ### Functions
 ```java
 /**  
  * Function handling all gamepad actions. 
- * @param code Either a keycode (Eg. KEYBODE_BUTTON_A), either an axis (Eg. AXIS_HAT_X)  
+ * @param code
+ * Either a keycode, one of: 
+	 * KEYCODE_BUTTON_A, KEYCODE_BUTTON_B, KEYCODE_BUTTON_X, KEYCODE_BUTTON_Y, 
+	 * KEYCODE_BUTTON_R1, KEYCODE_BUTTON_L1, KEYCODE_BUTTON_START, KEYCODE_BUTTON_SELECT,
+	 * KEYCODE_BUTTON_THUMBL, KEYCODE_BUTTON_THUMBR
+ * Either an axis, one of:
+	 * AXIS_HAT_X, AXIS_HAT_Y, AXIS_X, AXIS_Y, AXIS_Z, AXIS_RZ, AXIS_RTRIGGER, AXIS_LTRIGGER
+ * Note: The code may be different if the gamepad is not fully remapped.
+ * 
  * @param value For keycodes, 0 for released state, 1 for pressed state.  
  *              For Axis, the value of the axis. Varies between 0/1 or -1/1 depending on the axis.
  */
