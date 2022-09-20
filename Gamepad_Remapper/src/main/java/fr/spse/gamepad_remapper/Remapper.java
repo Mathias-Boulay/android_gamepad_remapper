@@ -63,38 +63,33 @@ public class Remapper {
      * Load the Remapper data from the shared preferences
      * @param context A context object, necessary to fetch SharedPreferences
      */
-    public Remapper(Context context){
+    public Remapper(Context context) throws JSONException {
         keyMap = new ArrayMap<>();
         motionMap = new ArrayMap<>();
 
-        try {
-            JSONObject fusedMaps = new JSONObject(context.getSharedPreferences("remapper_preference", Context.MODE_PRIVATE).getString("default_map", ""));
-            JSONObject keyMap = fusedMaps.getJSONObject("keyMap");
-            JSONObject motionMap = fusedMaps.getJSONObject("motionMap");
+        JSONObject fusedMaps = new JSONObject(context.getSharedPreferences("remapper_preference", Context.MODE_PRIVATE).getString("default_map", ""));
+        JSONObject keyMap = fusedMaps.getJSONObject("keyMap");
+        JSONObject motionMap = fusedMaps.getJSONObject("motionMap");
 
-            Iterator<String> keysItr = keyMap.keys();
-            while (keysItr.hasNext()) {
-                String key = keysItr.next();
-                int value = keyMap.getInt(key);
-                this.keyMap.put(Integer.valueOf(key), value);
-            }
-
-            keysItr = motionMap.keys();
-            while (keysItr.hasNext()) {
-                String key = keysItr.next();
-                int value = motionMap.getInt(key);
-                this.motionMap.put(Integer.valueOf(key), value);
-            }
-
-        } catch (JSONException e) {
-            Log.e(Remapper.class.toString(), "Failed to load from shared preferences");
+        Iterator<String> keysItr = keyMap.keys();
+        while (keysItr.hasNext()) {
+            String key = keysItr.next();
+            int value = keyMap.getInt(key);
+            this.keyMap.put(Integer.valueOf(key), value);
         }
 
-        for(Map.Entry<Integer, Integer> entry : keyMap.entrySet()){
+        keysItr = motionMap.keys();
+        while (keysItr.hasNext()) {
+            String key = keysItr.next();
+            int value = motionMap.getInt(key);
+            this.motionMap.put(Integer.valueOf(key), value);
+        }
+
+        for(Map.Entry<Integer, Integer> entry : this.keyMap.entrySet()){
             reverseKeyMap.put(entry.getValue(), entry.getKey());
         }
-        for(Map.Entry<Integer, Integer> entry : motionMap.entrySet()){
-            motionMap.put(entry.getValue(), entry.getKey());
+        for(Map.Entry<Integer, Integer> entry : this.motionMap.entrySet()){
+            reverseMotionMap.put(entry.getValue(), entry.getKey());
         }
     }
 
