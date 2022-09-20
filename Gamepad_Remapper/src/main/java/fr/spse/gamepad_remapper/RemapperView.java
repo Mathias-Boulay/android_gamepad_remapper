@@ -99,7 +99,7 @@ public class RemapperView extends TextView {
 
 
     /** Only meant to be used through the $Builder class */
-    private RemapperView(Context context, AttributeSet attrs) {
+    public RemapperView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
         setGravity(Gravity.CENTER_HORIZONTAL|Gravity.BOTTOM);
