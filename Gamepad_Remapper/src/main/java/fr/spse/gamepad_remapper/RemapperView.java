@@ -290,7 +290,7 @@ public class RemapperView extends TextView {
                 remapA, remapX, remapY, remapB,
                 remapStart, remapSelect;
 
-        private final Listener listener;
+        private Listener listener;
 
         /** @param listener The listener to which the Remapper object is passed after remapping */
         public Builder(Listener listener){
@@ -372,11 +372,16 @@ public class RemapperView extends TextView {
             return this;
         }
 
+        public Builder setRemapListener(Listener listener){
+            this.listener = listener;
+            return this;
+        }
+
         /**
          * Build and display the remapping dialog with all the parameters set previously
          * @param context A context object referring to the current window
          */
-        public void build(Context context){
+        public RemapperView build(Context context){
             View fullView = LayoutInflater.from(context).inflate(R.layout.remapper_view, null);
 
 
