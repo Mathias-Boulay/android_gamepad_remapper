@@ -32,29 +32,24 @@ import android.widget.Toast;
 
 import fr.spse.gamepad_remapper.GamepadHandler;
 import fr.spse.gamepad_remapper.Remapper;
+import fr.spse.gamepad_remapper.RemapperManager;
 import fr.spse.gamepad_remapper.RemapperView;
 
 public class MainActivity extends Activity implements GamepadHandler {
 
     private ImageView imageView;
-    private Remapper remapper;
-
+    private RemapperManager manager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         imageView = findViewById(R.id.image_view);
-        new RemapperView.Builder(new RemapperView.Listener() {
-                    @Override
-                    public void onRemapDone(Remapper remapper) {
-                        Toast.makeText(getBaseContext(), "Mapping done !", Toast.LENGTH_LONG).show();
-                        MainActivity.this.remapper = remapper;
 
-                        //remapper.save(getApplicationContext());
-                    }
-                })
+        // Create a builder with all the data we need.
+        // The listener here is not needed, since the builder is passed to the RemapperManager
+        // which handles listening by itself.
+        RemapperView.Builder builder = new RemapperView.Builder(null)
                         .remapA(true)
                         .remapB(true)
                         .remapX(true)
@@ -68,29 +63,20 @@ public class MainActivity extends Activity implements GamepadHandler {
                         .remapLeftShoulder(true)
                         .remapRightShoulder(true)
                         .remapLeftTrigger(true)
-                        .remapRightTrigger(true)
+                        .remapRightTrigger(true);
 
-
-                        .build(this);
-
-
+        manager = new RemapperManager(this, builder);
     }
 
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if(remapper == null)
-            return super.dispatchKeyEvent(event);
-
-        return remapper.handleKeyEventInput(event, this);
+        return manager.handleKeyEventInput(this, event, this) || super.dispatchKeyEvent(event);
     }
 
     @Override
-    public boolean onGenericMotionEvent(MotionEvent event) {
-        if(remapper == null)
-            return super.onGenericMotionEvent(event);
-
-        return remapper.handleMotionEventInput(event, this);
+    public boolean dispatchGenericMotionEvent(MotionEvent event) {
+        return manager.handleMotionEventInput(this, event, this) || super.dispatchGenericMotionEvent(event);
     }
 
     /**
