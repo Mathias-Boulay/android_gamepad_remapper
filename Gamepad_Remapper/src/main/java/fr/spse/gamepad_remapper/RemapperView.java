@@ -4,11 +4,6 @@ import static android.view.InputDevice.KEYBOARD_TYPE_ALPHABETIC;
 import static android.view.InputDevice.SOURCE_DPAD;
 import static android.view.InputDevice.SOURCE_GAMEPAD;
 import static android.view.InputDevice.SOURCE_JOYSTICK;
-import static android.view.KeyEvent.KEYCODE_DPAD_CENTER;
-import static android.view.KeyEvent.KEYCODE_DPAD_DOWN;
-import static android.view.KeyEvent.KEYCODE_DPAD_LEFT;
-import static android.view.KeyEvent.KEYCODE_DPAD_RIGHT;
-import static android.view.KeyEvent.KEYCODE_DPAD_UP;
 import static android.view.KeyEvent.KEYCODE_UNKNOWN;
 import static android.view.MotionEvent.AXIS_BRAKE;
 import static android.view.MotionEvent.AXIS_HAT_X;
@@ -24,7 +19,6 @@ import static android.view.MotionEvent.AXIS_Y;
 import static android.view.MotionEvent.AXIS_Z;
 
 import static fr.spse.gamepad_remapper.Remapper.AXIS_NONE;
-import static fr.spse.gamepad_remapper.Remapper.DPAD_CENTER;
 
 
 import android.annotation.SuppressLint;
@@ -36,7 +30,6 @@ import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.ArrayMap;
@@ -49,13 +42,10 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -63,7 +53,7 @@ import java.util.Map;
 public class RemapperView extends TextView {
 
     /* The dialog hosting the view, has to be dismissed upon full binding */
-    private DialogInterface dialogInterface;
+    private Dialog dialog;
 
     /* Whether or not the view is listening to events */
     private boolean isListening = true;
@@ -122,6 +112,14 @@ public class RemapperView extends TextView {
 
     private void init(){
         incrementMappedPointer();
+
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                System.out.println("Dialog dismissed !");
+                listener.onRemapDone(null);
+            }
+        });
 
         setOnKeyListener(new OnKeyListener() {
             @Override
@@ -197,7 +195,8 @@ public class RemapperView extends TextView {
     /** Make the view disappear and out of focus */
     private void destroy(){
         setFocusable(false);
-        dialogInterface.dismiss();
+        dialog.setOnDismissListener(null);
+        dialog.dismiss();
     }
 
     private static int findTriggeredAxis(MotionEvent event){
@@ -277,7 +276,10 @@ public class RemapperView extends TextView {
 
 
     public interface Listener{
-        /** When the remapping is done, a remapper is built and passed down the method */
+        /**
+         * When the remapping is done, a Remapper is built and passed down the method
+         * Upon cancellation, the remapped passed is null
+         */
         void onRemapDone(Remapper remapper);
     }
 
@@ -486,7 +488,7 @@ public class RemapperView extends TextView {
                     .setCancelable(false)
                     .create();
 
-            view.dialogInterface = dialog;
+            view.dialog = dialog;
 
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
             dialog.show();
@@ -495,6 +497,8 @@ public class RemapperView extends TextView {
             fullView.requestFocus();
             fullView.postDelayed(() -> fullView.requestFocus(), 500);
 
+
+            return view;
         }
     }
 }
