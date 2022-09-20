@@ -21,6 +21,8 @@ import static android.view.MotionEvent.AXIS_Z;
 import static fr.spse.gamepad_remapper.Remapper.AXIS_NONE;
 
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -29,6 +31,7 @@ import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Interpolator;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -42,8 +45,10 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+import android.widget.ViewAnimator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -87,6 +92,10 @@ public class RemapperView extends TextView {
     private final int verticalMargin = 40;
     private final int horizontalMargin = 40;
 
+    private float dotXPos = 0; // Used for the enabled dot
+
+    private final ValueAnimator animator = new ValueAnimator();
+
 
     /** Only meant to be used through the $Builder class */
     public RemapperView(Context context, AttributeSet attrs) {
@@ -104,13 +113,47 @@ public class RemapperView extends TextView {
         theme.resolveAttribute(android.R.attr.colorBackground, typedValue, true);
         backgroundColor = typedValue.data;
 
-        setElevation(25);
+
+
+        animator.setInterpolator(new LinearInterpolator());
+        animator.setFloatValues(0, 1f);
+        animator.setDuration(1200);
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            private boolean halfPassed = false;
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float value = animation.getAnimatedFraction();
+
+                float slice = (getWidth() * 0.66f)/inputList.size();
+                float offset = inputList.size() % 2 == 0 ? slice/2f : 0;
+                dotXPos = slice * Math.max(index + value - 1, 0) + (getWidth() * 0.165f + offset);
+
+                if(mCurrentIconDrawable != null && index > 0){
+                    if(value < 0.5){
+                        halfPassed = false;
+                        mCurrentIconDrawable.setAlpha((int) (255 * (1 - 2*value)));
+                    } else {
+                        if(!halfPassed){
+                            halfPassed = true;
+                            mCurrentIconDrawable.setAlpha(255);
+                            mCurrentIconDrawable = getResources().getDrawable(drawableList.get(index));
+                        }
+                        mCurrentIconDrawable.setAlpha((int) (255 * value));
+                    }
+
+                }
+                invalidate();
+            }
+        });
 
         post(this::init);
     }
 
 
     private void init(){
+        // First drawable
+        mCurrentIconDrawable = getResources().getDrawable(drawableList.get(0));
+
         incrementMappedPointer();
 
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
@@ -180,9 +223,9 @@ public class RemapperView extends TextView {
             if(isListening){
                 ++index;
 
-                postDelayed(() -> isListening = true, 800);
+                animator.start();
+                postDelayed(() -> isListening = true, 700);
                 setText(getResources().getString(textList.get(index)));
-                mCurrentIconDrawable = getResources().getDrawable(drawableList.get(index));
             }
         }else{
             listener.onRemapDone(new Remapper(inputMapKeys, inputMapMotions));
@@ -221,19 +264,18 @@ public class RemapperView extends TextView {
         // Draw small circles displaying where the user is
         paint.setStrokeWidth(20);
         paint.setStrokeCap(Paint.Cap.ROUND);
+        paint.setColor(disabledColor);
         float yPos = getHeight() - (getPaddingBottom() + verticalMargin)/2f;
         float slice = (getWidth() * 0.66f)/inputList.size();
         float offset = inputList.size() % 2 == 0 ? slice/2f : 0;
 
-        for(int i=0; i<inputList.size(); ++i){
+        for(int i=0; i<inputList.size(); ++i){  // Disabled dots
             float xPos = slice * i;
             xPos += getWidth() * 0.165f + offset;
-
-            // Set appropriate paint color
-            paint.setColor(i == index ? enabledColor : disabledColor);
-
             canvas.drawPoint(xPos, yPos, paint);
         }
+        paint.setColor(enabledColor);
+        canvas.drawPoint(dotXPos, yPos, paint);
 
         // Draw the actual control icon
         if(mCurrentIconDrawable != null){
