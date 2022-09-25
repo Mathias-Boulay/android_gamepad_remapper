@@ -1,6 +1,7 @@
 package fr.spse.gamepad_remapper;
 
 import android.content.Context;
+import android.util.ArrayMap;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -15,7 +16,7 @@ import org.json.JSONException;
  */
 public class RemapperManager {
     private final RemapperView.Builder builder;
-    private Remapper remapper;
+    private ArrayMap<String, Remapper> remappers = new ArrayMap<>();
     private RemapperView remapperView;
 
     /**
@@ -23,12 +24,6 @@ public class RemapperManager {
      * @param builder Builder with all the params set in. Note that the listener is going to be overridden.
      */
     public RemapperManager(Context context, RemapperView.Builder builder){
-        try {
-            remapper = new Remapper(context);
-        } catch (JSONException e) {
-            Log.e("RemapperManager", "Could not load from library !");
-            remapper = null;
-        }
         this.builder = builder;
     }
 
@@ -40,8 +35,8 @@ public class RemapperManager {
      * @return Whether the input was handled or not.
      */
     public boolean handleMotionEventInput(Context context, MotionEvent event, GamepadHandler handler){
-        if(buildView(context)) return true;
-        return remapper.handleMotionEventInput(event, handler);
+        if(buildView(context,getGamepadIdentifier(event))) return true;
+        return remappers.get(getGamepadIdentifier(event)).handleMotionEventInput(event, handler);
     }
 
     /**
@@ -52,13 +47,13 @@ public class RemapperManager {
      * @return Whether the input was handled or not.
      */
     public boolean handleKeyEventInput(Context context, KeyEvent event, GamepadHandler handler){
-        if(buildView(context)) return true;
-        return remapper.handleKeyEventInput(event, handler);
+        if(buildView(context, getGamepadIdentifier(event))) return true;
+        return remappers.get(getGamepadIdentifier(event)).handleKeyEventInput(event, handler);
     }
 
     /** @return True if the RemapperView has just been built or displayed, waiting for a remapper */
-    private boolean buildView(Context context){
-        if(remapper != null) return false;
+    private boolean buildView(Context context, final String gamepadID){
+        if(remappers.get(gamepadID) != null) return false;
         if(remapperView != null) return true;
 
         builder.setRemapListener(new RemapperView.Listener() {
@@ -68,11 +63,21 @@ public class RemapperManager {
                 if(remapper == null){
                     return;
                 }
-                RemapperManager.this.remapper = remapper;
+                RemapperManager.this.remappers.put(gamepadID, remapper);
                 remapper.save(context); // TODO async ?
             }
         });
         remapperView = builder.build(context);
         return true;
+    }
+
+    /** Wrapper for the InputDevice descriptor */
+    private String getGamepadIdentifier(KeyEvent event){
+        return event.getDevice().getDescriptor();
+    }
+
+    /** Wrapper for the InputDevice descriptor */
+    private String getGamepadIdentifier(MotionEvent event){
+        return event.getDevice().getDescriptor();
     }
 }

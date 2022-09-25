@@ -43,9 +43,9 @@ public class Remapper {
     private static final int DPAD_DOWN = -12;
     private static final int DPAD_LEFT = -13;
 
-    private Map<Integer, Integer> keyMap, motionMap;
-    private Map<Integer, Integer> reverseKeyMap = new ArrayMap<>();
-    private Map<Integer, Integer> reverseMotionMap = new ArrayMap<>();
+    private final Map<Integer, Integer> keyMap, motionMap;
+    private final Map<Integer, Integer> reverseKeyMap = new ArrayMap<>();
+    private final Map<Integer, Integer> reverseMotionMap = new ArrayMap<>();
 
     public Remapper(Map<Integer, Integer> keyMap, Map<Integer, Integer> motionMap){
         this.keyMap = keyMap;
@@ -60,14 +60,23 @@ public class Remapper {
     }
 
     /**
-     * Load the Remapper data from the shared preferences
+     * Load the default Remapper data from the shared preferences
      * @param context A context object, necessary to fetch SharedPreferences
      */
     public Remapper(Context context) throws JSONException {
+        this(context, "default_map");
+    }
+
+    /**
+     * Load the Remapper data from the shared preferences
+     * @param context A context object, necessary to fetch SharedPreferences
+     * @param name The name of the map stored
+     */
+    public Remapper(Context context, String name) throws JSONException {
         keyMap = new ArrayMap<>();
         motionMap = new ArrayMap<>();
 
-        JSONObject fusedMaps = new JSONObject(context.getSharedPreferences("remapper_preference", Context.MODE_PRIVATE).getString("default_map", ""));
+        JSONObject fusedMaps = new JSONObject(context.getSharedPreferences("remapper_preference", Context.MODE_PRIVATE).getString(name, ""));
         JSONObject keyMap = fusedMaps.getJSONObject("keyMap");
         JSONObject motionMap = fusedMaps.getJSONObject("motionMap");
 
@@ -95,10 +104,19 @@ public class Remapper {
 
 
     /**
-     * Saves the remapper data inside its own shared preference file
+     * Saves the Remapper data inside its own shared preference file
      * @param context A context object, necessary to fetch SharedPreferences
      */
     public void save(Context context){
+        save(context, "default_map");
+    }
+
+    /**
+     * Saves the Remapper data inside its own shared preference file
+     * @param context A context object, necessary to fetch SharedPreferences
+     * @param name The name for the file.
+     */
+    public void save(Context context, String name){
         SharedPreferences preferences = context.getSharedPreferences("remapper_preference", Context.MODE_PRIVATE);
         JSONObject keyMap = new JSONObject();
         for(Map.Entry<Integer, Integer> entry : this.keyMap.entrySet()){
@@ -126,7 +144,7 @@ public class Remapper {
             e.printStackTrace();
         }
 
-        preferences.edit().putString("default_map", fusedMaps.toString()).apply();
+        preferences.edit().putString(name, fusedMaps.toString()).apply();
     }
 
 
@@ -165,8 +183,6 @@ public class Remapper {
         handler.handleGamepadInput(mappedSource, getRemappedValue(mappedSource, event));
         return true;
     }
-
-
 
 
     /** If remapped, get the mapped source from keyEvent */
