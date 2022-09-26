@@ -6,10 +6,10 @@
 An incredibly easy to use, lightweight and widely compatible library to streamline the implementation of gamepads for android applications !
 
 ## Why this library ?
-According to the  [official android regarding gamepad integration](https://developer.android.com/develop/ui/views/touch-and-input/game-controllers/controller-input#button), you have 2 ways of capturing the input for the DPAD and triggers, either via `KeyEvent`  or `MotionEvents`.
-But since Android is not standardized enough, the actual buttons/axis reported are swapped, or completely different ones !
-
-This library addresses both issues.
+This library addresses 3 big problems when  [using the official documentation regarding gamepad integration](https://developer.android.com/develop/ui/views/touch-and-input/game-controllers/controller-input):
+- Multiple input entry points for the same physical input (KEYCODE_DPAD_UP vs AXIS_HAT_Y)
+- Axis and keycode may be swapped or wrongly mapped, even on popular gamepads
+- Motion Events require to check all axis manually, to verify a value has actually changed.
 
 ## Installation
 First, add the dependency inside the `build.gradle` file of your app module:
@@ -36,8 +36,6 @@ The managed integration passes down all of the work to the library.
 Compared to the manual integration, it takes care of the following:
 - Automatically show the remapping UI, **per gamepad**.
 - Auto load/save of the remapping data
-- Solve the third issue of vanilla gamepad integration: Having to check the value of every axis when a MotionEvent occurs by storing values.
-
 
 <details>
 <summary><b>How to add a managed integration</b></summary>
@@ -134,13 +132,9 @@ class MyActivity extends Activity implements GamepadHandler{
 	@Override // Implement the GamepadHandler interface
 	public void handleGamepadInput(int code, float value){
 		// TODO Your code to take care of the gamepad input.
-		// NOTE: INPUT ON AXIS WILL BE CALLED MANY TIMES, DESPITE THE VALUE NOT CHANGING ON MANUAL INTEGRATION
 	}
 }
 ```
-
-**Note:** Inputs may be called many times despite the value from the axis not changing.
-This is an issue related to the vanilla gamepad integration.
 
 Lazier people might want to use the Managed integration.
 Consult the FULL DOCUMENTATION for details.
@@ -155,16 +149,16 @@ Class able to map inputs from one way or another, used to normalize inputs.
 
 ### Constructors
 ```java
-/**
+/**  
  * Load the Remapper data from the shared preferences 
  * @param context A context object, necessary to fetch SharedPreferences  
  */
-public Remapper(Context context);
+ public Remapper(Context context);
 ```
 
 ### Functions
 ```java
-/**
+/**  
  * If the event is a valid Gamepad event, call the GamepadHandler method.
  * @param event The current MotionEvent  
  * @param handler The handler, through which remapped inputs will be passed.  
@@ -174,21 +168,21 @@ public boolean handleMotionEventInput(MotionEvent event, GamepadHandler handler)
 ```
 
 ```java
-/**
+/**  
  * If the event is a valid Gamepad event, call the GamepadHandler method
  * @param event The current KeyEvent  
  * @param handler The handler, through which remapped inputs will be passed.  
  * @return Whether the input was handled or not.  
  */
-public boolean handleKeyEventInput(KeyEvent event, GamepadHandler handler);
+ public boolean handleKeyEventInput(KeyEvent event, GamepadHandler handler);
 ```
 
 ```java
-/**
+/**  
  * Saves the remapper data inside its own shared preference file 
  * @param context A context object, necessary to fetch SharedPreferences  
  */
-public void save(Context context);
+ public void save(Context context);
 ```
 
 ## RemapperView.Builder
@@ -224,7 +218,7 @@ public Builder setRemapListener(RemapperView.Listener listener);
 ```
 
 ```java
-/**
+/**  
  * Build and display the remapping dialog with all the parameters set previously
  * @param context A context object referring to the current window  
  */
@@ -239,16 +233,16 @@ Note that the compatibility with a manual integration at the same time is limite
 
 ### Constructor
 ```java
-/**
+/**  
  * @param context A context for SharedPreferences. The Manager attempts to fetch an existing remapper.  
  * @param builder Builder with all the params set in. Note that the listener is going to be overridden.  
  */
-public RemapperManager(Context context, RemapperView.Builder builder);
+ public RemapperManager(Context context, RemapperView.Builder builder);
 ```
 
 ### Functions
 ```java
-/**
+/**  
  * If the event is a valid Gamepad event and a remapper is available, call the GamepadHandler method 
  * Will automatically ask to remap if no remapper is available 
  * @param event The current MotionEvent  
@@ -258,22 +252,21 @@ public RemapperManager(Context context, RemapperView.Builder builder);
 public boolean handleMotionEventInput(Context context, MotionEvent event, GamepadHandler handler);
 ```
 ```java
-/**
+/**  
  * If the event is a valid Gamepad event and a remapper is available, call the GamepadHandler method 
  * Will automatically ask to remap if no remapper is available
  * @param event The current KeyEvent  
  * @param handler The handler, through which remapped inputs will be passed.  
  * @return Whether the input was handled or not.  
  */
-public boolean handleKeyEventInput(Context context, KeyEvent event, GamepadHandler handler);
+ public boolean handleKeyEventInput(Context context, KeyEvent event, GamepadHandler handler);
 ```
 
 ## Interface - GamepadHandler
 ### Functions
 ```java
 /**
- * Function handling all gamepad actions. 
- * @param code
+ * Function handling all gamepad actions: For mapped buttons, the value is guaranteed to have changed.
  * Either a keycode, one of: 
  * KEYCODE_BUTTON_A, KEYCODE_BUTTON_B, KEYCODE_BUTTON_X, KEYCODE_BUTTON_Y, 
  * KEYCODE_BUTTON_R1, KEYCODE_BUTTON_L1, KEYCODE_BUTTON_START, KEYCODE_BUTTON_SELECT,

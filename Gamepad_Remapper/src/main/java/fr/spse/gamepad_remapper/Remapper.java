@@ -25,6 +25,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.ArrayMap;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
@@ -46,6 +47,10 @@ public class Remapper {
     private final Map<Integer, Integer> keyMap, motionMap;
     private final Map<Integer, Integer> reverseKeyMap = new ArrayMap<>();
     private final Map<Integer, Integer> reverseMotionMap = new ArrayMap<>();
+
+    /* Store current buttons value */
+    private SparseArray<Float> currentKeyValues = new SparseArray<>();
+    private SparseArray<Float> currentMotionValues = new SparseArray<>();
 
     public Remapper(Map<Integer, Integer> keyMap, Map<Integer, Integer> motionMap){
         this.keyMap = keyMap;
@@ -150,6 +155,7 @@ public class Remapper {
 
     /**
      * If the event is a valid Gamepad event, call the GamepadHandler method.
+     * Note that the handler won't be called if there is no value change.
      * @param event The current MotionEvent
      * @param handler The handler, through which remapped inputs will be passed.
      * @return Whether the input was handled or not.
@@ -157,15 +163,23 @@ public class Remapper {
     public boolean handleMotionEventInput(MotionEvent event, GamepadHandler handler){
         if(!RemapperView.isGamepadMotionEvent(event)) return false;
 
-        handler.handleGamepadInput(AXIS_HAT_X, getRemappedValue(getRemappedSource(event, AXIS_HAT_X), event));
-        handler.handleGamepadInput(AXIS_HAT_Y, getRemappedValue(getRemappedSource(event, AXIS_HAT_Y), event));
-        handler.handleGamepadInput(AXIS_X, getRemappedValue(getRemappedSource(event, AXIS_X), event));
-        handler.handleGamepadInput(AXIS_Y, getRemappedValue(getRemappedSource(event, AXIS_Y), event));
-        handler.handleGamepadInput(AXIS_RTRIGGER, getRemappedValue(getRemappedSource(event, AXIS_RTRIGGER), event));
-        handler.handleGamepadInput(AXIS_LTRIGGER, getRemappedValue(getRemappedSource(event, AXIS_LTRIGGER), event));
-        handler.handleGamepadInput(AXIS_Z, getRemappedValue(getRemappedSource(event, AXIS_Z), event));
-        handler.handleGamepadInput(AXIS_RZ, getRemappedValue(getRemappedSource(event, AXIS_RZ), event));
+        handleMotionIfDifferent(AXIS_HAT_X, getRemappedValue(getRemappedSource(event, AXIS_HAT_X), event), handler);
+        handleMotionIfDifferent(AXIS_HAT_Y, getRemappedValue(getRemappedSource(event, AXIS_HAT_Y), event), handler);
+        handleMotionIfDifferent(AXIS_X, getRemappedValue(getRemappedSource(event, AXIS_X), event), handler);
+        handleMotionIfDifferent(AXIS_Y, getRemappedValue(getRemappedSource(event, AXIS_Y), event), handler);
+        handleMotionIfDifferent(AXIS_RTRIGGER, getRemappedValue(getRemappedSource(event, AXIS_RTRIGGER), event), handler);
+        handleMotionIfDifferent(AXIS_LTRIGGER, getRemappedValue(getRemappedSource(event, AXIS_LTRIGGER), event), handler);
+        handleMotionIfDifferent(AXIS_Z, getRemappedValue(getRemappedSource(event, AXIS_Z), event), handler);
+        handleMotionIfDifferent(AXIS_RZ, getRemappedValue(getRemappedSource(event, AXIS_RZ), event), handler);
         return true;
+    }
+
+    public void handleMotionIfDifferent(int mappedSource, float value, GamepadHandler handler){
+        Float lastValue = currentMotionValues.get(mappedSource);
+        if(lastValue == null || lastValue != value){
+            handler.handleGamepadInput(mappedSource, value);
+            currentMotionValues.put(mappedSource, value);
+        }
     }
 
     /**
@@ -180,9 +194,16 @@ public class Remapper {
         if(event.getRepeatCount() > 0) return false;
 
         int mappedSource = getRemappedSource(event);
-        handler.handleGamepadInput(mappedSource, getRemappedValue(mappedSource, event));
+        float currentValue = getRemappedValue(mappedSource, event);
+        Float lastValue = currentKeyValues.get(mappedSource);
+        if(lastValue == null || currentValue != lastValue){
+            handler.handleGamepadInput(mappedSource, currentValue);
+            currentKeyValues.put(mappedSource, currentValue);
+        }
         return true;
     }
+
+
 
 
     /** If remapped, get the mapped source from keyEvent */
