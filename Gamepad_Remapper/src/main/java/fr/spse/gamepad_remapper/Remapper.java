@@ -35,6 +35,9 @@ import org.json.JSONObject;
 import java.util.Iterator;
 import java.util.Map;
 
+/**
+ * Class able to map inputs from one way or another
+ */
 public class Remapper {
     public static final int AXIS_NONE = -1;
 
