@@ -42,7 +42,7 @@ afterEvaluate {
 
                 groupId = 'com.github.Mathias-Boulay'
                 artifactId = 'android_gamepad_remapper'
-                version = '0.0.1'
+                version = '2.0.0'
             }
         }
     }
