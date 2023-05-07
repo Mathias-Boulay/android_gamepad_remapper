@@ -6,10 +6,10 @@ plugins {
 android {
     
     publishing {
-        multipleVariants {
-        allVariants()
-        withJavadocJar()
+        singleVariant('debug') {
+            withSourcesJar()
         }
+
     }
 
     compileSdk 32
