@@ -28,7 +28,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         release{
-            minifyEnabled true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -43,18 +43,18 @@ dependencies {
 }
 
 
-publishing {
-    publications {
-        release(MavenPublication) {
-            
-
-            groupId = 'com.github.Mathias-Boulay'
-            artifactId = 'android_gamepad_remapper'
-            version = '2.0.1-hotfix'
-
-            afterEvaluate {
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
                 from components.release
+
+                groupId = 'com.github.Mathias-Boulay'
+                artifactId = 'android_gamepad_remapper'
+                version = '2.0.1-hotfix-2'
+                    
             }
         }
     }
 }
+
