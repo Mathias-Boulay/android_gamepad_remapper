@@ -7,3 +7,6 @@ plugins {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+group = 'fr.spse'
+version = '2.0.1'

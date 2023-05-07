@@ -4,6 +4,14 @@ plugins {
 }
 
 android {
+    
+    publishing {
+        multipleVariants {
+        allVariants()
+        withJavadocJar()
+        }
+    }
+
     compileSdk 32
 
     defaultConfig {
@@ -42,7 +50,7 @@ publishing {
 
             groupId = 'com.github.Mathias-Boulay'
             artifactId = 'android_gamepad_remapper'
-            version = '2.0.1'
+            version = '2.0.1-hotfix'
 
             afterEvaluate {
                 from components.release
