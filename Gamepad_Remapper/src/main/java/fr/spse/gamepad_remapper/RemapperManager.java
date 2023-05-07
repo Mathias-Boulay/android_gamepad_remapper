@@ -1,6 +1,7 @@
 package fr.spse.gamepad_remapper;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.ArrayMap;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -25,6 +26,14 @@ public class RemapperManager {
      */
     public RemapperManager(Context context, RemapperView.Builder builder){
         this.builder = builder;
+        SharedPreferences preferences = context.getSharedPreferences("remapper_preference", Context.MODE_PRIVATE);
+        for(String remapperKey : preferences.getAll().keySet()){
+            try {
+                remappers.put(remapperKey, new Remapper(context, remapperKey));
+            } catch (JSONException e) {
+                Log.e(RemapperManager.class.toString(), "Could not create the following remapper:" + remapperKey);
+            }
+        }
     }
 
     /**
@@ -64,7 +73,7 @@ public class RemapperManager {
                     return;
                 }
                 RemapperManager.this.remappers.put(gamepadID, remapper);
-                remapper.save(context); // TODO async ?
+                remapper.save(context, gamepadID); // TODO async ?
             }
         });
         remapperView = builder.build(context);

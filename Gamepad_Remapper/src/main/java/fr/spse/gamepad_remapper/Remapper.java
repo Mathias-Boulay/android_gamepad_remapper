@@ -83,8 +83,9 @@ public class Remapper {
     public Remapper(Context context, String name) throws JSONException {
         keyMap = new ArrayMap<>();
         motionMap = new ArrayMap<>();
+        SharedPreferences sharedPreferences = context.getSharedPreferences("remapper_preference", Context.MODE_PRIVATE);
 
-        JSONObject fusedMaps = new JSONObject(context.getSharedPreferences("remapper_preference", Context.MODE_PRIVATE).getString(name, ""));
+        JSONObject fusedMaps = new JSONObject(sharedPreferences.getString(name, ""));
         JSONObject keyMap = fusedMaps.getJSONObject("keyMap");
         JSONObject motionMap = fusedMaps.getJSONObject("motionMap");
 
