@@ -207,7 +207,7 @@ public class RemapperView extends TextView {
         setOnFocusChangeListener(new OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if(!hasFocus) v.requestFocus();
+                v.requestFocus();
             }
         });
 
@@ -215,6 +215,7 @@ public class RemapperView extends TextView {
             setFocusedByDefault(true);
         }
         setFocusable(true);
+        post(this::requestFocus);
         requestFocus();
     }
 
@@ -258,7 +259,7 @@ public class RemapperView extends TextView {
         // Draw the focused window
         paint.setAlpha(255);
         paint.setColor(backgroundColor);
-        canvas.drawRoundRect(horizontalMargin, 2*getHeight()/3f, getWidth() - horizontalMargin, getHeight() - verticalMargin,
+        canvas.drawRoundRect(horizontalMargin, 0, getWidth() - horizontalMargin, getHeight() - verticalMargin,
                 cornerRadius, cornerRadius, paint);
 
         // Draw small circles displaying where the user is
@@ -279,7 +280,7 @@ public class RemapperView extends TextView {
 
         // Draw the actual control icon
         if(mCurrentIconDrawable != null){
-            mCurrentIconDrawable.setBounds(getWidth()/2-100, (int) ((0.79f * getHeight()) - 100), getWidth()/2 + 100 , (int) ((0.79f * getHeight()) + 100));
+            mCurrentIconDrawable.setBounds(getWidth()/2-100, (int) ((0.4 * getHeight()) - 100), getWidth()/2 + 100 , (int) ((0.4 * getHeight()) + 100));
             mCurrentIconDrawable.draw(canvas);
         }
 
