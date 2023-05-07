@@ -1,5 +1,7 @@
 package fr.spse.gamepad_remapper;
 
+import static fr.spse.gamepad_remapper.Remapper.SHARED_PREFERENCE_KEY;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.ArrayMap;
@@ -26,7 +28,7 @@ public class RemapperManager {
      */
     public RemapperManager(Context context, RemapperView.Builder builder){
         this.builder = builder;
-        SharedPreferences preferences = context.getSharedPreferences("remapper_preference", Context.MODE_PRIVATE);
+        SharedPreferences preferences = context.getSharedPreferences(SHARED_PREFERENCE_KEY, Context.MODE_PRIVATE);
         for(String remapperKey : preferences.getAll().keySet()){
             try {
                 remappers.put(remapperKey, new Remapper(context, remapperKey));

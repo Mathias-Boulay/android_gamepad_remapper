@@ -172,7 +172,7 @@ public class RemapperView extends TextView {
                 if(keyEvent.getRepeatCount() > 0) return true;
                 if(keyEvent.getKeyCode() == KEYCODE_UNKNOWN) return true;
                 if(isGamepadDevice(keyEvent.getDevice()) || isGamepadKeyEvent(keyEvent)){
-                    //TODO handle the keyevent
+
                     inputMapKeys.put(keyEvent.getKeyCode(),inputList.get(index));
 
 
@@ -194,7 +194,6 @@ public class RemapperView extends TextView {
                     int axis = findTriggeredAxis(motionEvent);
                     // HAT axis will be captured as key events
                     if(axis == AXIS_NONE) return true;
-                    //TODO handle the keyevent
                     inputMapMotions.put(axis, inputList.get(index));
 
                     incrementMappedPointer();

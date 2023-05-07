@@ -185,6 +185,11 @@ public boolean handleMotionEventInput(MotionEvent event, GamepadHandler handler)
  public void save(Context context);
 ```
 
+```java
+/** Wipes the saved gamepad maps from the data. A reload of the data is needed for the input manager to notice */
+public static void wipePreferences(Context context); 
+```
+
 ## RemapperView.Builder
 ### Constructors
 ```java

@@ -23,6 +23,7 @@ import static android.view.MotionEvent.AXIS_Z;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.util.ArrayMap;
 import android.util.Log;
 import android.util.SparseArray;
@@ -39,6 +40,8 @@ import java.util.Map;
  * Class able to map inputs from one way or another
  */
 public class Remapper {
+
+    public static final String SHARED_PREFERENCE_KEY = "remapper_preference";
     public static final int AXIS_NONE = -1;
 
     public static final int DPAD_CENTER = -9;
@@ -83,7 +86,7 @@ public class Remapper {
     public Remapper(Context context, String name) throws JSONException {
         keyMap = new ArrayMap<>();
         motionMap = new ArrayMap<>();
-        SharedPreferences sharedPreferences = context.getSharedPreferences("remapper_preference", Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = context.getSharedPreferences( SHARED_PREFERENCE_KEY, Context.MODE_PRIVATE);
 
         JSONObject fusedMaps = new JSONObject(sharedPreferences.getString(name, ""));
         JSONObject keyMap = fusedMaps.getJSONObject("keyMap");
@@ -126,7 +129,7 @@ public class Remapper {
      * @param name The name for the file.
      */
     public void save(Context context, String name){
-        SharedPreferences preferences = context.getSharedPreferences("remapper_preference", Context.MODE_PRIVATE);
+        SharedPreferences preferences = context.getSharedPreferences(SHARED_PREFERENCE_KEY, Context.MODE_PRIVATE);
         JSONObject keyMap = new JSONObject();
         for(Map.Entry<Integer, Integer> entry : this.keyMap.entrySet()){
             try {
@@ -312,6 +315,20 @@ public class Remapper {
         }
 
         return KEYCODE_DPAD_CENTER;
+    }
+
+
+    /** Removes all current preferences from the data */
+    public static void wipePreferences(Context context) {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            context.deleteSharedPreferences(SHARED_PREFERENCE_KEY);
+        }else{
+            SharedPreferences sharedPreferences = context.getSharedPreferences( SHARED_PREFERENCE_KEY, Context.MODE_PRIVATE);
+            for(String key : sharedPreferences.getAll().keySet()){
+                sharedPreferences.edit().remove(key).apply();
+            }
+        }
     }
 }
 
