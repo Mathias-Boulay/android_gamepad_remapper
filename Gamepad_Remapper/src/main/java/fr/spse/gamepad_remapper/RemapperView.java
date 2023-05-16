@@ -43,6 +43,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -63,6 +64,7 @@ public class RemapperView extends TextView {
     private final int verticalMargin = 40;
     private final int horizontalMargin = 40;
     private final ValueAnimator animator = new ValueAnimator();
+    private final ValueAnimator reverseAnimator = new ValueAnimator();
     /* Array of inputs to remap, initialized by the $Builder */
     protected List<Integer> inputList = new ArrayList<>();
     /* All drawables that will be showed during the binding phase */
@@ -72,7 +74,7 @@ public class RemapperView extends TextView {
     /* The dialog hosting the view, has to be dismissed upon full binding */
     private Dialog dialog;
     /* Whether or not the view is listening to events */
-    private boolean isListening = true;
+    private boolean isListening = false;
     /* Points to whatever input has to be mapped */
     private int index = -1;
     /* Allow to pass down the mapper */
@@ -132,6 +134,38 @@ public class RemapperView extends TextView {
             }
         });
 
+        reverseAnimator.setInterpolator(new LinearInterpolator());
+        reverseAnimator.setFloatValues(0, 1F);
+        reverseAnimator.setDuration(1200);
+        reverseAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            private boolean halfPassed = false;
+
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float value = animation.getAnimatedFraction();
+
+                float slice = (getWidth() * 0.66f) / inputList.size();
+                float offset = inputList.size() % 2 == 0 ? slice / 2f : 0;
+                dotXPos = slice * Math.max(index - value + 1, 0) + (getWidth() * 0.165f + offset);
+
+                if (mCurrentIconDrawable != null && index >= 0) {
+                    if (value < 0.5) {
+                        halfPassed = false;
+                        mCurrentIconDrawable.setAlpha((int) (255 * (1 - 2 * value)));
+                    } else {
+                        if (!halfPassed) {
+                            halfPassed = true;
+                            mCurrentIconDrawable.setAlpha(255);
+                            mCurrentIconDrawable = getResources().getDrawable(drawableList.get(index));
+                        }
+                        mCurrentIconDrawable.setAlpha((int) (255 * value));
+                    }
+
+                }
+                invalidate();
+            }
+        });
+
         post(this::init);
     }
 
@@ -173,8 +207,10 @@ public class RemapperView extends TextView {
     private void init() {
         // First drawable
         mCurrentIconDrawable = getResources().getDrawable(drawableList.get(0));
-
+        
+        isListening = true;
         incrementMappedPointer();
+        isListening = false;
 
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
@@ -183,26 +219,6 @@ public class RemapperView extends TextView {
                 listener.onRemapDone(null);
             }
         });
-
-        setOnKeyListener(new OnKeyListener() {
-            @Override
-            public boolean onKey(View view, int i, KeyEvent keyEvent) {
-                // First, filter potentially unwanted events
-                if (!isListening) return true;
-                if (keyEvent.getRepeatCount() > 0) return true;
-                if (keyEvent.getKeyCode() == KEYCODE_UNKNOWN) return true;
-                if (isGamepadDevice(keyEvent.getDevice()) || isGamepadKeyEvent(keyEvent)) {
-
-                    inputMapKeys.put(keyEvent.getKeyCode(), inputList.get(index));
-
-
-                    incrementMappedPointer();
-                }
-
-                return true;
-            }
-        });
-
 
         setOnGenericMotionListener(new OnGenericMotionListener() {
             @Override
@@ -223,12 +239,7 @@ public class RemapperView extends TextView {
             }
         });
 
-        setOnFocusChangeListener(new OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                v.requestFocus();
-            }
-        });
+        setOnFocusChangeListener((v, hasFocus) -> requestFocus());
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             setFocusedByDefault(true);
@@ -236,6 +247,28 @@ public class RemapperView extends TextView {
         setFocusable(true);
         post(this::requestFocus);
         requestFocus();
+        postDelayed(() -> {
+            isListening = true;
+        }, 700);
+    }
+
+    /**
+     * Moved outside and called by the dialog
+     */
+    public boolean onKey(int i, KeyEvent keyEvent) {
+        // First, filter potentially unwanted events
+        if (!isListening) return true;
+        if (keyEvent.getRepeatCount() > 0) return true;
+        if (keyEvent.getKeyCode() == KEYCODE_UNKNOWN) return true;
+        if (isGamepadDevice(keyEvent.getDevice()) || isGamepadKeyEvent(keyEvent)) {
+
+            inputMapKeys.put(keyEvent.getKeyCode(), inputList.get(index));
+
+
+            incrementMappedPointer();
+        }
+
+        return true;
     }
 
     private void incrementMappedPointer() {
@@ -253,6 +286,17 @@ public class RemapperView extends TextView {
         }
 
         isListening = false;
+    }
+
+    private void decrementMappedPointer() {
+        if (index > 0) {
+            --index;
+            isListening = false;
+
+            reverseAnimator.start();
+            postDelayed(() -> isListening = true, 700);
+            setText(getResources().getString(textList.get(index)));
+        }
     }
 
     /**
@@ -516,6 +560,17 @@ public class RemapperView extends TextView {
                 //view.textList.add(R.string.bind_process_press_dpad_left);
             }
 
+            ImageButton backButton = fullView.findViewById(R.id.back_button);
+            backButton.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    view.decrementMappedPointer();
+                    backButton.clearFocus();
+                    fullView.requestFocus();
+
+                    fullView.postDelayed(fullView::requestFocus, 500);
+                }
+            });
 
             // Once the view is built, display it via an alert dialog
             AlertDialog dialog = new AlertDialog.Builder(context)
@@ -532,6 +587,13 @@ public class RemapperView extends TextView {
 
             fullView.requestFocus();
             fullView.postDelayed(fullView::requestFocus, 500);
+
+            dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+                @Override
+                public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                    return view.onKey(keyCode, event);
+                }
+            });
 
 
             return view;

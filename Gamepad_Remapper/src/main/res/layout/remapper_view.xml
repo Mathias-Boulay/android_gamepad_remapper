@@ -11,4 +11,19 @@
         android:layout_gravity="center_horizontal|bottom"
         android:background="@drawable/no_focus_shown" />
 
+
+    <ImageButton
+        android:id="@+id/back_button"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_marginEnd="135dp"
+        android:layout_marginBottom="150dp"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:src="@drawable/back_arrow"
+        android:text="BACK" />
+
+
 </FrameLayout>
