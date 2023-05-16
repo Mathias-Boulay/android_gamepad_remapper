@@ -14,7 +14,7 @@ import org.json.JSONException;
 /**
  * Manager class to streamline even more the integration of gamepads
  * It auto handles displaying the mapper view and handling events.
- *
+ * <p>
  * Note that the compatibility with a manual integration at the same time is limited
  */
 public class RemapperManager {
@@ -26,10 +26,10 @@ public class RemapperManager {
      * @param context A context for SharedPreferences. The Manager attempts to fetch an existing remapper.
      * @param builder Builder with all the params set in. Note that the listener is going to be overridden.
      */
-    public RemapperManager(Context context, RemapperView.Builder builder){
+    public RemapperManager(Context context, RemapperView.Builder builder) {
         this.builder = builder;
         SharedPreferences preferences = context.getSharedPreferences(SHARED_PREFERENCE_KEY, Context.MODE_PRIVATE);
-        for(String remapperKey : preferences.getAll().keySet()){
+        for (String remapperKey : preferences.getAll().keySet()) {
             try {
                 remappers.put(remapperKey, new Remapper(context, remapperKey));
             } catch (JSONException e) {
@@ -41,37 +41,41 @@ public class RemapperManager {
     /**
      * If the event is a valid Gamepad event and a remapper is available, call the GamepadHandler method
      * Will automatically ask to remap if no remapper is available
-     * @param event The current MotionEvent
+     *
+     * @param event   The current MotionEvent
      * @param handler The handler, through which remapped inputs will be passed.
      * @return Whether the input was handled or not.
      */
-    public boolean handleMotionEventInput(Context context, MotionEvent event, GamepadHandler handler){
-        if(buildView(context,getGamepadIdentifier(event))) return true;
+    public boolean handleMotionEventInput(Context context, MotionEvent event, GamepadHandler handler) {
+        if (buildView(context, getGamepadIdentifier(event))) return true;
         return remappers.get(getGamepadIdentifier(event)).handleMotionEventInput(event, handler);
     }
 
     /**
      * If the event is a valid Gamepad event and a remapper is available, call the GamepadHandler method
      * Will automatically ask to remap if no remapper is available
-     * @param event The current KeyEvent
+     *
+     * @param event   The current KeyEvent
      * @param handler The handler, through which remapped inputs will be passed.
      * @return Whether the input was handled or not.
      */
-    public boolean handleKeyEventInput(Context context, KeyEvent event, GamepadHandler handler){
-        if(buildView(context, getGamepadIdentifier(event))) return true;
+    public boolean handleKeyEventInput(Context context, KeyEvent event, GamepadHandler handler) {
+        if (buildView(context, getGamepadIdentifier(event))) return true;
         return remappers.get(getGamepadIdentifier(event)).handleKeyEventInput(event, handler);
     }
 
-    /** @return True if the RemapperView has just been built or displayed, waiting for a remapper */
-    private boolean buildView(Context context, final String gamepadID){
-        if(remappers.get(gamepadID) != null) return false;
-        if(remapperView != null) return true;
+    /**
+     * @return True if the RemapperView has just been built or displayed, waiting for a remapper
+     */
+    private boolean buildView(Context context, final String gamepadID) {
+        if (remappers.get(gamepadID) != null) return false;
+        if (remapperView != null) return true;
 
         builder.setRemapListener(new RemapperView.Listener() {
             @Override
             public void onRemapDone(Remapper remapper) {
                 remapperView = null; // Destroy the reference, we don't want to always keep the view
-                if(remapper == null){
+                if (remapper == null) {
                     return;
                 }
                 RemapperManager.this.remappers.put(gamepadID, remapper);
@@ -82,13 +86,17 @@ public class RemapperManager {
         return true;
     }
 
-    /** Wrapper for the InputDevice descriptor */
-    private String getGamepadIdentifier(KeyEvent event){
+    /**
+     * Wrapper for the InputDevice descriptor
+     */
+    private String getGamepadIdentifier(KeyEvent event) {
         return event.getDevice().getDescriptor();
     }
 
-    /** Wrapper for the InputDevice descriptor */
-    private String getGamepadIdentifier(MotionEvent event){
+    /**
+     * Wrapper for the InputDevice descriptor
+     */
+    private String getGamepadIdentifier(MotionEvent event) {
         return event.getDevice().getDescriptor();
     }
 }

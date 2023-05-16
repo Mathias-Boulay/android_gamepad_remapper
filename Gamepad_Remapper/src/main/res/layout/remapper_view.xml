@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:background="@drawable/no_focus_shown"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@drawable/no_focus_shown">
 
     <fr.spse.gamepad_remapper.RemapperView
         android:id="@+id/remapper_view"
-        android:background="@drawable/no_focus_shown"
         android:layout_width="350dp"
         android:layout_height="200dp"
         android:layout_gravity="center_horizontal|bottom"
-        />
+        android:background="@drawable/no_focus_shown" />
 
 </FrameLayout>
