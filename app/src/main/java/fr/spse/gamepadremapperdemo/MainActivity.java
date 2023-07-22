@@ -21,17 +21,13 @@ import static android.view.MotionEvent.AXIS_Y;
 import static android.view.MotionEvent.AXIS_Z;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import fr.spse.gamepad_remapper.GamepadHandler;
-import fr.spse.gamepad_remapper.Remapper;
 import fr.spse.gamepad_remapper.RemapperManager;
 import fr.spse.gamepad_remapper.RemapperView;
 
@@ -50,20 +46,20 @@ public class MainActivity extends Activity implements GamepadHandler {
         // The listener here is not needed, since the builder is passed to the RemapperManager
         // which handles listening by itself.
         RemapperView.Builder builder = new RemapperView.Builder(null)
-                        .remapA(true)
-                        .remapB(true)
-                        .remapX(true)
-                        .remapY(true)
+                .remapA(true)
+                .remapB(true)
+                .remapX(true)
+                .remapY(true)
 
-                        .remapDpad(true)
-                        .remapLeftJoystick(true)
-                        .remapRightJoystick(true)
-                        .remapStart(true)
-                        .remapSelect(true)
-                        .remapLeftShoulder(true)
-                        .remapRightShoulder(true)
-                        .remapLeftTrigger(true)
-                        .remapRightTrigger(true);
+                .remapDpad(true)
+                .remapLeftJoystick(true)
+                .remapRightJoystick(true)
+                .remapStart(true)
+                .remapSelect(true)
+                .remapLeftShoulder(true)
+                .remapRightShoulder(true)
+                .remapLeftTrigger(true)
+                .remapRightTrigger(true);
 
         manager = new RemapperManager(this, builder);
     }
@@ -76,17 +72,19 @@ public class MainActivity extends Activity implements GamepadHandler {
 
     @Override
     public boolean dispatchGenericMotionEvent(MotionEvent event) {
+        Toast.makeText(this, "dispatch motion event", Toast.LENGTH_SHORT).show();
         return manager.handleMotionEventInput(this, event, this) || super.dispatchGenericMotionEvent(event);
     }
 
     /**
      * Function handling all gamepad actions
-     * @param code Either a keycode (Eg. KEYBODE_BUTTON_A), either an axis (Eg. AXIS_HAT_X)
+     *
+     * @param code  Either a keycode (Eg. KEYBODE_BUTTON_A), either an axis (Eg. AXIS_HAT_X)
      * @param value For keycodes, 0 for released state, 1 for pressed state.
      *              For Axis, the value of the axis. Varies between 0/1 or -1/1 depending on the axis.
      */
-    public void handleGamepadInput(int code, float value){
-        switch (code){
+    public void handleGamepadInput(int code, float value) {
+        switch (code) {
             case KEYCODE_BUTTON_A:
                 setImageIfPositiveValue(fr.spse.gamepad_remapper.R.drawable.button_a, value);
                 break;
@@ -122,7 +120,6 @@ public class MainActivity extends Activity implements GamepadHandler {
             case KEYCODE_BUTTON_THUMBR:
                 setImageIfPositiveValue(fr.spse.gamepad_remapper.R.drawable.stick_right_click, value);
                 break;
-
 
 
             // DPAD
@@ -161,14 +158,14 @@ public class MainActivity extends Activity implements GamepadHandler {
         }
     }
 
-    private void setImageIfPositiveValue(int imageId, float value){
-        if(value >= 0.85){
+    private void setImageIfPositiveValue(int imageId, float value) {
+        if (value >= 0.85) {
             imageView.setImageDrawable(getResources().getDrawable(imageId, getTheme()));
         }
     }
 
-    private void setImageIfAbsValue(int imageId, float value){
-        if(Math.abs(value) >= 0.85){
+    private void setImageIfAbsValue(int imageId, float value) {
+        if (Math.abs(value) >= 0.85) {
             imageView.setImageDrawable(getResources().getDrawable(imageId, getTheme()));
         }
     }
