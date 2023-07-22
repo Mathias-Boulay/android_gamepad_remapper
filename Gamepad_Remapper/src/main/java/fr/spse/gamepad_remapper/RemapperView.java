@@ -561,16 +561,7 @@ public class RemapperView extends TextView {
             }
 
             ImageButton backButton = fullView.findViewById(R.id.back_button);
-            backButton.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    view.decrementMappedPointer();
-                    backButton.clearFocus();
-                    fullView.requestFocus();
 
-                    fullView.postDelayed(fullView::requestFocus, 500);
-                }
-            });
 
             // Once the view is built, display it via an alert dialog
             AlertDialog dialog = new AlertDialog.Builder(context)
@@ -581,6 +572,28 @@ public class RemapperView extends TextView {
             view.dialog = dialog;
 
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
+            dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+                @Override
+                public void onShow(DialogInterface d) {
+                    dialog.getWindow().getDecorView().requestFocus();
+                    backButton.setFocusable(false);
+                    backButton.setFocusableInTouchMode(false);
+
+                    backButton.setOnClickListener(new OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            view.decrementMappedPointer();
+
+                            view.requestFocus(View.FOCUS_BACKWARD);
+
+
+                        }
+                    });
+                }
+            });
+
+
             dialog.show();
             Toast.makeText(context, "Height:" + context.getResources().getDisplayMetrics().heightPixels, Toast.LENGTH_SHORT).show();
             fullView.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) (context.getResources().getDisplayMetrics().heightPixels * 0.9)));

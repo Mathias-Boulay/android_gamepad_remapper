@@ -9,7 +9,9 @@
         android:layout_width="350dp"
         android:layout_height="200dp"
         android:layout_gravity="center_horizontal|bottom"
-        android:background="@drawable/no_focus_shown" />
+        android:background="@drawable/no_focus_shown"
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
 
 
     <ImageButton
