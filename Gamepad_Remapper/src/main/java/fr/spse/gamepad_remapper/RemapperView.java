@@ -6,6 +6,7 @@ import static android.view.InputDevice.SOURCE_GAMEPAD;
 import static android.view.InputDevice.SOURCE_JOYSTICK;
 import static android.view.KeyEvent.KEYCODE_UNKNOWN;
 import static android.view.MotionEvent.AXIS_BRAKE;
+import static android.view.MotionEvent.AXIS_GAS;
 import static android.view.MotionEvent.AXIS_HAT_X;
 import static android.view.MotionEvent.AXIS_HAT_Y;
 import static android.view.MotionEvent.AXIS_LTRIGGER;
@@ -170,7 +171,7 @@ public class RemapperView extends TextView {
     }
 
     private static int findTriggeredAxis(MotionEvent event) {
-        for (int axis : new int[]{AXIS_HAT_X, AXIS_HAT_Y, AXIS_RX, AXIS_RY, AXIS_X, AXIS_Y, AXIS_Z, AXIS_RZ, AXIS_BRAKE, AXIS_THROTTLE, AXIS_RTRIGGER, AXIS_LTRIGGER}) {
+        for (int axis : new int[]{AXIS_HAT_X, AXIS_HAT_Y, AXIS_RX, AXIS_RY, AXIS_X, AXIS_Y, AXIS_Z, AXIS_RZ, AXIS_GAS, AXIS_BRAKE, AXIS_THROTTLE, AXIS_RTRIGGER, AXIS_LTRIGGER}) {
             if (event.getAxisValue(axis) >= 0.85) {
                 return axis;
             }
