@@ -288,8 +288,12 @@ public class Remapper {
         if (magnitude < deadzone) {
             x = 0;
             y = 0;
+        } else {
+            // compensate the value for deadzone
+            x = (float) ((x / magnitude) * ((magnitude - deadzone) / (1 - deadzone)));
+            y = (float) ((y / magnitude) * ((magnitude - deadzone) / (1 - deadzone)));
         }
-
+        
         handleMotionIfDifferent(horizontalAxis, x, handler);
         handleMotionIfDifferent(verticalAxis, y, handler);
     }
