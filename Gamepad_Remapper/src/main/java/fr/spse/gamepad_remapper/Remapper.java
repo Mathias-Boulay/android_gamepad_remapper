@@ -196,7 +196,7 @@ public class Remapper {
 
     private static float getDeadzone(MotionEvent event, int axis) {
         try {
-            return event.getDevice().getMotionRange(axis).getFlat(); // TODO handle the global deadzone setting
+            return event.getDevice().getMotionRange(axis).getFlat() * Settings.getDeadzoneScale();
         } catch (Exception e) {
             Log.e(Remapper.class.toString(), "Dynamic Deadzone is not supported ");
             return 0.2f;
@@ -204,7 +204,7 @@ public class Remapper {
     }
 
     private static double getMagnitude(float x, float y) {
-        return Utils.dist(0, 0, Math.abs(x), Math.abs(y));
+        return RemapperUtils.dist(0, 0, Math.abs(x), Math.abs(y));
     }
 
     /**
