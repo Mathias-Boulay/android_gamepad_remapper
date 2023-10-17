@@ -159,13 +159,13 @@ public class MainActivity extends Activity implements GamepadHandler {
     }
 
     private void setImageIfPositiveValue(int imageId, float value) {
-        if (value >= 0.85) {
+        if (value >= 0) {
             imageView.setImageDrawable(getResources().getDrawable(imageId, getTheme()));
         }
     }
 
     private void setImageIfAbsValue(int imageId, float value) {
-        if (Math.abs(value) >= 0.85) {
+        if (Math.abs(value) >= 0) {
             imageView.setImageDrawable(getResources().getDrawable(imageId, getTheme()));
         }
     }

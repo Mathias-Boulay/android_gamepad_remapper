@@ -194,6 +194,19 @@ public class Remapper {
         }
     }
 
+    private static float getDeadzone(MotionEvent event, int axis) {
+        try {
+            return event.getDevice().getMotionRange(axis).getFlat(); // TODO handle the global deadzone setting
+        } catch (Exception e) {
+            Log.e(Remapper.class.toString(), "Dynamic Deadzone is not supported ");
+            return 0.2f;
+        }
+    }
+
+    private static double getMagnitude(float x, float y) {
+        return Utils.dist(0, 0, Math.abs(x), Math.abs(y));
+    }
+
     /**
      * Saves the Remapper data inside its own shared preference file
      *
@@ -253,16 +266,35 @@ public class Remapper {
 
         handleMotionIfDifferent(AXIS_HAT_X, getRemappedValue(getRemappedSource(event, AXIS_HAT_X), event), handler);
         handleMotionIfDifferent(AXIS_HAT_Y, getRemappedValue(getRemappedSource(event, AXIS_HAT_Y), event), handler);
-        handleMotionIfDifferent(AXIS_X, getRemappedValue(getRemappedSource(event, AXIS_X), event), handler);
-        handleMotionIfDifferent(AXIS_Y, getRemappedValue(getRemappedSource(event, AXIS_Y), event), handler);
         handleMotionIfDifferent(AXIS_RTRIGGER, getRemappedValue(getRemappedSource(event, AXIS_RTRIGGER), event), handler);
         handleMotionIfDifferent(AXIS_LTRIGGER, getRemappedValue(getRemappedSource(event, AXIS_LTRIGGER), event), handler);
-        handleMotionIfDifferent(AXIS_Z, getRemappedValue(getRemappedSource(event, AXIS_Z), event), handler);
-        handleMotionIfDifferent(AXIS_RZ, getRemappedValue(getRemappedSource(event, AXIS_RZ), event), handler);
+
+        handleJoystickInput(event, handler, AXIS_X, AXIS_Y);
+        handleJoystickInput(event, handler, AXIS_Z, AXIS_RZ);
         return true;
     }
 
-    public void handleMotionIfDifferent(int mappedSource, float value, GamepadHandler handler) {
+    /**
+     * Same as the handleMotionEvent but applies a deadzone
+     */
+    private void handleJoystickInput(MotionEvent event, GamepadHandler handler, int horizontalAxis, int verticalAxis) {
+        int originalHorizontalAxis = getRemappedSource(event, horizontalAxis);
+        int originalVerticalAxis = getRemappedSource(event, verticalAxis);
+        float x = getRemappedValue(originalHorizontalAxis, event);
+        float y = getRemappedValue(originalVerticalAxis, event);
+
+        double magnitude = getMagnitude(x, y);
+        float deadzone = getDeadzone(event, horizontalAxis); // FIXME should we query both axis ?
+        if (magnitude < deadzone) {
+            x = 0;
+            y = 0;
+        }
+
+        handleMotionIfDifferent(horizontalAxis, x, handler);
+        handleMotionIfDifferent(verticalAxis, y, handler);
+    }
+
+    private void handleMotionIfDifferent(int mappedSource, float value, GamepadHandler handler) {
         Float lastValue = currentMotionValues.get(mappedSource);
         if (lastValue == null || lastValue != value) {
             handler.handleGamepadInput(mappedSource, value);
