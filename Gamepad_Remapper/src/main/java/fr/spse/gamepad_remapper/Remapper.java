@@ -25,6 +25,7 @@ import android.os.Build;
 import android.util.ArrayMap;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
@@ -196,7 +197,12 @@ public class Remapper {
 
     private static float getDeadzone(MotionEvent event, int axis) {
         try {
-            return event.getDevice().getMotionRange(axis).getFlat() * Settings.getDeadzoneScale();
+            InputDevice.MotionRange range = event.getDevice().getMotionRange(axis, InputDevice.SOURCE_JOYSTICK);
+            float deadzone = 0;
+            if (range != null) {
+                deadzone = range.getFlat() * Settings.getDeadzoneScale();
+            }
+            return Math.max(deadzone, Settings.DEADZONE_MIN * Settings.getDeadzoneScale());
         } catch (Exception e) {
             Log.e(Remapper.class.toString(), "Dynamic Deadzone is not supported ");
             return 0.2f;
