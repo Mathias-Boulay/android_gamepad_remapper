@@ -22,10 +22,11 @@ import static android.view.MotionEvent.AXIS_Z;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.widget.ImageView;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import fr.spse.gamepad_remapper.GamepadHandler;
 import fr.spse.gamepad_remapper.RemapperManager;
@@ -35,12 +36,14 @@ public class MainActivity extends Activity implements GamepadHandler {
 
     private ImageView imageView;
     private RemapperManager manager;
+    private TextView deadzoneTextview;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         imageView = findViewById(R.id.image_view);
+        deadzoneTextview = findViewById(R.id.deadzone_values);
 
         // Create a builder with all the data we need.
         // The listener here is not needed, since the builder is passed to the RemapperManager
@@ -72,7 +75,10 @@ public class MainActivity extends Activity implements GamepadHandler {
 
     @Override
     public boolean dispatchGenericMotionEvent(MotionEvent event) {
-        Toast.makeText(this, "dispatch motion event", Toast.LENGTH_SHORT).show();
+        InputDevice device = event.getDevice();
+        if (device != null) {
+            deadzoneTextview.setText(device.toString());
+        }
         return manager.handleMotionEventInput(this, event, this) || super.dispatchGenericMotionEvent(event);
     }
 

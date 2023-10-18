@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Gamepad Remapper Demo</string>
+    <string name="title_last_triggered_input">Last Triggered input</string>
+    <string name="title_gamepad_info">Gamepad info</string>
 </resources>

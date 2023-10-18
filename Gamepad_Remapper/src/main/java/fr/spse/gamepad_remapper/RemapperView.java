@@ -5,20 +5,14 @@ import static android.view.InputDevice.SOURCE_DPAD;
 import static android.view.InputDevice.SOURCE_GAMEPAD;
 import static android.view.InputDevice.SOURCE_JOYSTICK;
 import static android.view.KeyEvent.KEYCODE_UNKNOWN;
-import static android.view.MotionEvent.AXIS_BRAKE;
-import static android.view.MotionEvent.AXIS_GAS;
 import static android.view.MotionEvent.AXIS_HAT_X;
 import static android.view.MotionEvent.AXIS_HAT_Y;
-import static android.view.MotionEvent.AXIS_LTRIGGER;
-import static android.view.MotionEvent.AXIS_RTRIGGER;
-import static android.view.MotionEvent.AXIS_RX;
-import static android.view.MotionEvent.AXIS_RY;
 import static android.view.MotionEvent.AXIS_RZ;
-import static android.view.MotionEvent.AXIS_THROTTLE;
 import static android.view.MotionEvent.AXIS_X;
 import static android.view.MotionEvent.AXIS_Y;
 import static android.view.MotionEvent.AXIS_Z;
 import static fr.spse.gamepad_remapper.Remapper.AXIS_NONE;
+import static fr.spse.gamepad_remapper.Settings.SUPPORTED_AXIS;
 
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
@@ -171,7 +165,7 @@ public class RemapperView extends TextView {
     }
 
     private static int findTriggeredAxis(MotionEvent event) {
-        for (int axis : new int[]{AXIS_HAT_X, AXIS_HAT_Y, AXIS_RX, AXIS_RY, AXIS_X, AXIS_Y, AXIS_Z, AXIS_RZ, AXIS_GAS, AXIS_BRAKE, AXIS_THROTTLE, AXIS_RTRIGGER, AXIS_LTRIGGER}) {
+        for (int axis : SUPPORTED_AXIS) {
             if (event.getAxisValue(axis) >= 0.85) {
                 return axis;
             }
@@ -208,7 +202,7 @@ public class RemapperView extends TextView {
     private void init() {
         // First drawable
         mCurrentIconDrawable = getResources().getDrawable(drawableList.get(0));
-        
+
         isListening = true;
         incrementMappedPointer();
         isListening = false;
@@ -224,6 +218,7 @@ public class RemapperView extends TextView {
         setOnGenericMotionListener(new OnGenericMotionListener() {
             @Override
             public boolean onGenericMotion(View view, MotionEvent motionEvent) {
+                //Toast.makeText(getContext(), "remapper view listen", Toast.LENGTH_SHORT).show();
                 // First, filter potentially unwanted events
                 if (!isListening) return true;
                 if (isGamepadDevice(motionEvent.getDevice()) || isGamepadMotionEvent(motionEvent)) {
