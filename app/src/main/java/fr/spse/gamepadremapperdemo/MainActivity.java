@@ -104,7 +104,7 @@ public class MainActivity extends Activity implements GamepadHandler {
                 setImageIfPositiveValue(fr.spse.gamepad_remapper.R.drawable.button_y, value);
                 break;
 
-            // SHoulder buttons
+            // Shoulder buttons
             case KEYCODE_BUTTON_R1:
                 setImageIfPositiveValue(fr.spse.gamepad_remapper.R.drawable.shoulder_right, value);
                 break;

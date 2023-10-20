@@ -130,11 +130,9 @@ public class Remapper {
      *
      * @param keycode The keycode to transform
      */
-    private static int transformKeyEventInput(int keycode) {
-        if (keycode == KEYCODE_DPAD_UP) return DPAD_UP;
-        if (keycode == KEYCODE_DPAD_RIGHT) return DPAD_RIGHT;
-        if (keycode == KEYCODE_DPAD_DOWN) return DPAD_DOWN;
-        if (keycode == KEYCODE_DPAD_LEFT) return DPAD_LEFT;
+    static int transformKeyEventInput(int keycode) {
+        if (keycode == KEYCODE_DPAD_UP || keycode == KEYCODE_DPAD_DOWN) return AXIS_HAT_Y;
+        if (keycode == KEYCODE_DPAD_RIGHT || keycode == KEYCODE_DPAD_LEFT) return AXIS_HAT_X;
         return keycode;
     }
 
@@ -221,6 +219,7 @@ public class Remapper {
     public void save(Context context) {
         save(context, "default_map");
     }
+
 
     /**
      * Saves the Remapper data inside its own shared preference file
@@ -338,8 +337,9 @@ public class Remapper {
      * If remapped, get the mapped source from keyEvent
      */
     private int getRemappedSource(KeyEvent event) {
-        Integer mappedValue = keyMap.get(transformKeyEventInput(event.getKeyCode()));
-        return mappedValue == null ? event.getKeyCode() : mappedValue;
+        int translatedSource = transformKeyEventInput(event.getKeyCode());
+        Integer mappedValue = keyMap.get(translatedSource);
+        return mappedValue == null ? translatedSource : mappedValue;
     }
 
     /**
@@ -355,6 +355,12 @@ public class Remapper {
      */
     private float getRemappedValue(int mappedSource, KeyEvent keyEvent) {
         if (keyEvent.getAction() == KeyEvent.ACTION_DOWN || keyEvent.getAction() == KeyEvent.ACTION_MULTIPLE) {
+            // Special case for DPADs, there are never remapped to anything else. So we consider them properly mapped.
+            if ((mappedSource == AXIS_HAT_Y && keyEvent.getKeyCode() == KEYCODE_DPAD_UP)
+                    || (mappedSource == AXIS_HAT_X && keyEvent.getKeyCode() == KEYCODE_DPAD_LEFT)
+            ) {
+                return -1f;
+            }
             return 1f;
         }
         return 0f;
