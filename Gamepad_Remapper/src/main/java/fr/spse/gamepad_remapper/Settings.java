@@ -21,7 +21,7 @@ public class Settings {
     /**
      * Deadzone at 100% if the device does not declare his properly
      */
-    public static float DEADZONE_MIN = 0.1f;
+    public static final float DEADZONE_MIN = 0.1f;
     private static float DEADZONE_SCALE = 1f;
 
     private Settings() {
