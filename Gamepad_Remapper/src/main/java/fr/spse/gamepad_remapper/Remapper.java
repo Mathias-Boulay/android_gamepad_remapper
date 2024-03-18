@@ -115,15 +115,6 @@ public class Remapper {
         }
     }
 
-    private static int findTriggeredAxis(MotionEvent event) {
-        for (int axis : new int[]{AXIS_RX, AXIS_RY, AXIS_X, AXIS_Y, AXIS_Z, AXIS_RZ, AXIS_BRAKE, AXIS_THROTTLE, AXIS_RTRIGGER, AXIS_LTRIGGER}) {
-            if (Math.abs(event.getAxisValue(axis)) >= 0.5) {
-                return axis;
-            }
-        }
-        return AXIS_NONE;
-    }
-
     /**
      * Changes the dpad value by another value with the same meaning.
      * It is done because some axis share the same value as KEYCODE_DPAD_XX
@@ -134,48 +125,6 @@ public class Remapper {
         if (keycode == KEYCODE_DPAD_UP || keycode == KEYCODE_DPAD_DOWN) return AXIS_HAT_Y;
         if (keycode == KEYCODE_DPAD_RIGHT || keycode == KEYCODE_DPAD_LEFT) return AXIS_HAT_X;
         return keycode;
-    }
-
-    /**
-     * Changes the dpad value by another value with the same meaning.
-     * It is done because some axis share the same value as KEYCODE_DPAD_XX
-     *
-     * @param event The event to transform
-     * @param axis  The axis to observe
-     */
-    private static int transformMotionEventInput(MotionEvent event, int axis) {
-        if (axis == AXIS_HAT_X) {
-            if (event.getAxisValue(axis) >= 0.85) return DPAD_RIGHT;
-            if (event.getAxisValue(axis) <= -0.85) return DPAD_LEFT;
-        }
-
-        if (axis == AXIS_HAT_Y) {
-            if (event.getAxisValue(axis) >= 0.85) return DPAD_DOWN;
-            if (event.getAxisValue(axis) <= -0.85) return DPAD_UP;
-        }
-
-        return DPAD_CENTER;
-    }
-
-    /**
-     * Changes the dpad value by another value with the same meaning.
-     * It is done because some axis share the same value as KEYCODE_DPAD_XX
-     *
-     * @param event The event to transform
-     * @param axis  The axis to observe
-     */
-    private static int transformMotionEventOutput(MotionEvent event, int axis) {
-        if (axis == AXIS_HAT_X) {
-            if (event.getAxisValue(axis) >= 0.5) return KEYCODE_DPAD_RIGHT;
-            if (event.getAxisValue(axis) <= -0.5) return KEYCODE_DPAD_LEFT;
-        }
-
-        if (axis == AXIS_HAT_Y) {
-            if (event.getAxisValue(axis) >= 0.5) return KEYCODE_DPAD_DOWN;
-            if (event.getAxisValue(axis) <= -0.5) return KEYCODE_DPAD_UP;
-        }
-
-        return KEYCODE_DPAD_CENTER;
     }
 
     /**
