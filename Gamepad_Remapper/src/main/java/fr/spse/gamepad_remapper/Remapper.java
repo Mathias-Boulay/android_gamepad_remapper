@@ -49,6 +49,9 @@ public class Remapper {
     private static final int DPAD_DOWN = -12;
     private static final int DPAD_LEFT = -13;
 
+    private static final float AXIS_TO_KEY_ACTIVATION_THRESHOLD = 0.6f;
+    private static final float AXIS_TO_KEY_RESET_THRESHOLD = 0.4f;
+
     private final Map<Integer, Integer> keyMap, motionMap;
     private final Map<Integer, Integer> reverseKeyMap = new ArrayMap<>();
     private final Map<Integer, Integer> reverseMotionMap = new ArrayMap<>();
@@ -218,10 +221,10 @@ public class Remapper {
     public boolean handleMotionEventInput(MotionEvent event, GamepadHandler handler) {
         if (!RemapperView.isGamepadMotionEvent(event)) return false;
 
-        handleMotionIfDifferent(AXIS_HAT_X, getRemappedValue(getRemappedSource(event, AXIS_HAT_X), event), handler);
-        handleMotionIfDifferent(AXIS_HAT_Y, getRemappedValue(getRemappedSource(event, AXIS_HAT_Y), event), handler);
-        handleMotionIfDifferent(AXIS_RTRIGGER, getRemappedValue(getRemappedSource(event, AXIS_RTRIGGER), event), handler);
-        handleMotionIfDifferent(AXIS_LTRIGGER, getRemappedValue(getRemappedSource(event, AXIS_LTRIGGER), event), handler);
+        handleMotionIfDifferent(AXIS_HAT_X, getRemappedValue(AXIS_HAT_X, event), handler);
+        handleMotionIfDifferent(AXIS_HAT_Y, getRemappedValue(AXIS_HAT_Y, event), handler);
+        handleMotionIfDifferent(AXIS_RTRIGGER, getRemappedValue(AXIS_RTRIGGER, event), handler);
+        handleMotionIfDifferent(AXIS_LTRIGGER, getRemappedValue(AXIS_LTRIGGER, event), handler);
 
         handleJoystickInput(event, handler, AXIS_X, AXIS_Y);
         handleJoystickInput(event, handler, AXIS_Z, AXIS_RZ);
@@ -232,10 +235,8 @@ public class Remapper {
      * Same as the handleMotionEvent but applies a deadzone
      */
     private void handleJoystickInput(MotionEvent event, GamepadHandler handler, int horizontalAxis, int verticalAxis) {
-        int originalHorizontalAxis = getRemappedSource(event, horizontalAxis);
-        int originalVerticalAxis = getRemappedSource(event, verticalAxis);
-        float x = getRemappedValue(originalHorizontalAxis, event);
-        float y = getRemappedValue(originalVerticalAxis, event);
+        float x = getRemappedValue(horizontalAxis, event);
+        float y = getRemappedValue(verticalAxis, event);
 
         double magnitude = getMagnitude(x, y);
         float deadzone = getDeadzone(event, horizontalAxis); // FIXME should we query both axis ?
@@ -318,17 +319,25 @@ public class Remapper {
     /**
      * Get the converted value for the given mapped source
      */
-    private float getRemappedValue(int mappedSource, MotionEvent motionEvent) {
+    private float getRemappedValue(int orignalSource, MotionEvent motionEvent) {
         //Integer axis = reverseMotionMap.get(mappedSource);
         //if(axis == null) axis = mappedSource;
+        int mappedSource = getRemappedSource(motionEvent, orignalSource);
 
         if (isAxis(mappedSource)) {
             return motionEvent.getAxisValue(mappedSource);
         }
 
         // Else, convert to a keyEvent action
-        return Math.abs(motionEvent.getAxisValue(mappedSource)) >= 0.5
-                ? 1 : 0;
+        // Assume that only one button is mapped to the final value
+        // Since the even is converted back into a "keyevent", the values are 0 or 1
+        boolean isEnabled = currentMotionValues.get(orignalSource, 0.0f) == 1.0f;
+        float absoluteValue = Math.abs(motionEvent.getAxisValue(mappedSource));
+        if (isEnabled) {
+            return  absoluteValue >= AXIS_TO_KEY_RESET_THRESHOLD ? 1 : 0;
+        } else {
+            return absoluteValue >= AXIS_TO_KEY_ACTIVATION_THRESHOLD ? 1 : 0;
+        }
     }
 
     /**
