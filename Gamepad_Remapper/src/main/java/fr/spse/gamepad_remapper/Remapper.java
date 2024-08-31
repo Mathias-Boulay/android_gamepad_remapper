@@ -57,8 +57,8 @@ public class Remapper {
     private final Map<Integer, Integer> reverseMotionMap = new ArrayMap<>();
 
     /* Store current buttons value */
-    private SparseArray<Float> currentKeyValues = new SparseArray<>();
-    private SparseArray<Float> currentMotionValues = new SparseArray<>();
+    private final SparseArray<Float> currentKeyValues = new SparseArray<>();
+    private final SparseArray<Float> currentMotionValues = new SparseArray<>();
 
     public Remapper(Map<Integer, Integer> keyMap, Map<Integer, Integer> motionMap) {
         this.keyMap = keyMap;

@@ -27,5 +27,20 @@
         android:src="@drawable/back_arrow"
         android:text="BACK" />
 
+    <Button
+        android:id="@+id/skip_button"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_marginStart="105dp"
+        android:layout_marginBottom="150dp"
+        android:textAlignment="center"
+
+        android:text="@string/skip"
+        />
+
 
 </FrameLayout>

@@ -37,6 +37,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.LinearInterpolator;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -556,7 +557,8 @@ public class RemapperView extends TextView {
                 //view.textList.add(R.string.bind_process_press_dpad_left);
             }
 
-            ImageButton backButton = fullView.findViewById(R.id.back_button);
+            final ImageButton backButton = fullView.findViewById(R.id.back_button);
+            final Button skipButton = fullView.findViewById(R.id.skip_button);
 
 
             // Once the view is built, display it via an alert dialog
@@ -580,10 +582,17 @@ public class RemapperView extends TextView {
                         @Override
                         public void onClick(View v) {
                             view.decrementMappedPointer();
-
                             view.requestFocus(View.FOCUS_BACKWARD);
+                        }
+                    });
 
-
+                    skipButton.setFocusable(false);
+                    skipButton.setFocusableInTouchMode(false);
+                    skipButton.setOnClickListener(new OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            view.incrementMappedPointer();
+                            view.requestFocus(View.FOCUS_BACKWARD);
                         }
                     });
                 }
@@ -591,7 +600,7 @@ public class RemapperView extends TextView {
 
 
             dialog.show();
-            Toast.makeText(context, "Height:" + context.getResources().getDisplayMetrics().heightPixels, Toast.LENGTH_SHORT).show();
+            //Toast.makeText(context, "Height:" + context.getResources().getDisplayMetrics().heightPixels, Toast.LENGTH_SHORT).show();
             fullView.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) (context.getResources().getDisplayMetrics().heightPixels * 0.9)));
 
             fullView.requestFocus();

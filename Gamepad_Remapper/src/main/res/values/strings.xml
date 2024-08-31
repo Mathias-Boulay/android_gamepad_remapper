@@ -23,5 +23,6 @@
 
     <string name="bind_process_press_stick_left">Waiting for the LEFT JOYSTICK button</string>
     <string name="bind_process_press_stick_right">Waiting for the RIGHT JOYSTICK button</string>
+    <string name="skip">SKIP</string>
 
 </resources>
