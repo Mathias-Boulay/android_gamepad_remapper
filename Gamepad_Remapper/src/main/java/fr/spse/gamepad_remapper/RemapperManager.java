@@ -71,16 +71,13 @@ public class RemapperManager {
         if (remappers.get(gamepadID) != null) return false;
         if (remapperView != null) return true;
 
-        builder.setRemapListener(new RemapperView.Listener() {
-            @Override
-            public void onRemapDone(Remapper remapper) {
-                remapperView = null; // Destroy the reference, we don't want to always keep the view
-                if (remapper == null) {
-                    return;
-                }
-                RemapperManager.this.remappers.put(gamepadID, remapper);
-                remapper.save(context, gamepadID); // TODO async ?
+        builder.setRemapListener(remapper -> {
+            remapperView = null; // Destroy the reference, we don't want to always keep the view
+            if (remapper == null) {
+                return;
             }
+            RemapperManager.this.remappers.put(gamepadID, remapper);
+            remapper.save(context, gamepadID); // TODO async ?
         });
         remapperView = builder.build(context);
         return true;

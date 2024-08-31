@@ -1,28 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="bind_process_press_a">Waiting for the A button</string>
-    <string name="bind_process_press_b">Waiting for the B button</string>
-    <string name="bind_process_press_x">Waiting for the X button</string>
-    <string name="bind_process_press_y">Waiting for the Y button</string>
-    <string name="bind_process_press_select">Waiting for the SELECT button</string>
-    <string name="bind_process_press_start">Waiting for the START button</string>
-    <string name="bind_process_press_shoulder_left">Waiting for the LEFT SHOULDER button</string>
-    <string name="bind_process_press_shoulder_right">Waiting for the RIGHT SHOULDER button</string>
-    <string name="bind_process_press_trigger_left">Waiting for the LEFT TRIGGER button</string>
-    <string name="bind_process_press_trigger_right">Waiting for the RIGHT TRIGGER button</string>
+    <string name="button_a" translatable="false">A</string>
+    <string name="button_b" translatable="false">B</string>
+    <string name="button_x" translatable="false">X</string>
+    <string name="button_y" translatable="false">Y</string>
 
-    <string name="bind_process_press_dpad_up">Waiting for the DPAD UP button</string>
-    <string name="bind_process_press_dpad_right">Waiting for the DPAD RIGHT button</string>
-    <string name="bind_process_press_dpad_down">Waiting for the DPAD DOWN button</string>
-    <string name="bind_process_press_dpad_left">Waiting for the DPAD LEFT button</string>
+    <string name="button_select" translatable="false">SELECT</string>
+    <string name="button_start" translatable="false">START</string>
 
-    <string name="bind_process_move_stick_left_x">Move the LEFT joystick to the RIGHT</string>
-    <string name="bind_process_move_stick_left_y">Move the LEFT joystick to the BOTTOM</string>
-    <string name="bind_process_move_stick_right_x">Move the RIGHT joystick to the RIGHT</string>
-    <string name="bind_process_move_stick_right_y">Move the RIGHT joystick to the BOTTOM</string>
+    <string name="button_shoulder" translatable="false">SHOULDER</string>
+    <string name="button_trigger" translatable="false">TRIGGER</string>
+    <string name="button_dpad" translatable="false">DPAD</string>
+    <string name="button_joystick" translatable="false">JOYSTICK</string>
 
-    <string name="bind_process_press_stick_left">Waiting for the LEFT JOYSTICK button</string>
-    <string name="bind_process_press_stick_right">Waiting for the RIGHT JOYSTICK button</string>
+    <string name="bind_process_waiting_button">Press the %s button</string>
+    <string name="bind_process_waiting_joystick">Move the %s joystick to the %s</string>
     <string name="skip">SKIP</string>
+
+    <string name="bind_process_bottom">BOTTOM</string>
+    <string name="bind_process_left">LEFT</string>
+    <string name="bind_process_right">RIGHT</string>
+    <string name="bind_process_up">UP</string>
+    <string name="bind_process_down">DOWN</string>
+
+
+
+
+
 
 </resources>
