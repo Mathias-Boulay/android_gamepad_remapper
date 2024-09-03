@@ -11,6 +11,8 @@ import static android.view.KeyEvent.KEYCODE_BUTTON_THUMBL;
 import static android.view.KeyEvent.KEYCODE_BUTTON_THUMBR;
 import static android.view.KeyEvent.KEYCODE_BUTTON_X;
 import static android.view.KeyEvent.KEYCODE_BUTTON_Y;
+import static android.view.KeyEvent.KEYCODE_DPAD_LEFT;
+import static android.view.KeyEvent.KEYCODE_DPAD_UP;
 import static android.view.MotionEvent.AXIS_HAT_X;
 import static android.view.MotionEvent.AXIS_HAT_Y;
 import static android.view.MotionEvent.AXIS_LTRIGGER;
@@ -20,23 +22,42 @@ import static android.view.MotionEvent.AXIS_X;
 import static android.view.MotionEvent.AXIS_Y;
 import static android.view.MotionEvent.AXIS_Z;
 
+import static fr.spse.gamepad_remapper.Remapper.SHARED_PREFERENCE_KEY;
+import static fr.spse.gamepad_remapper.Settings.SUPPORTED_AXIS;
+
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import fr.spse.gamepad_remapper.GamepadHandler;
+import fr.spse.gamepad_remapper.Remapper;
 import fr.spse.gamepad_remapper.RemapperManager;
 import fr.spse.gamepad_remapper.RemapperView;
 
 public class MainActivity extends Activity implements GamepadHandler {
 
+    private final HashMap<String, Float> lastRemappedGamepadState = new HashMap<>();
+    private final HashMap<String, String> lastRawGamepadState = new HashMap<>();
+
     private ImageView imageView;
     private RemapperManager manager;
-    private TextView deadzoneTextview;
+    private TextView deadzoneTextview, lastStateTextview, lastRawStateTextView;
+    private Button resetButton, exportButton;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,11 +65,15 @@ public class MainActivity extends Activity implements GamepadHandler {
         setContentView(R.layout.activity_main);
         imageView = findViewById(R.id.image_view);
         deadzoneTextview = findViewById(R.id.deadzone_values);
+        lastStateTextview = findViewById(R.id.last_state);
+        lastRawStateTextView = findViewById(R.id.last_raw_state);
+        resetButton = findViewById(R.id.reset_button);
+        exportButton = findViewById(R.id.export_button);
 
         // Create a builder with all the data we need.
         // The listener here is not needed, since the builder is passed to the RemapperManager
         // which handles listening by itself.
-        RemapperView.Builder builder = new RemapperView.Builder(null)
+        RemapperView.Builder builder = new RemapperView.Builder()
                 .remapA(true)
                 .remapB(true)
                 .remapX(true)
@@ -65,11 +90,31 @@ public class MainActivity extends Activity implements GamepadHandler {
                 .remapRightTrigger(true);
 
         manager = new RemapperManager(this, builder);
+
+        exportButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SharedPreferences sharedPreferences = v.getContext().getSharedPreferences(SHARED_PREFERENCE_KEY, Context.MODE_PRIVATE);
+                StringBuilder builder = new StringBuilder();
+                for (Map.Entry<String, ?> entry : sharedPreferences.getAll().entrySet()) {
+                    builder.append(entry.getKey()).append(" : ").append(entry.getValue());
+                }
+
+                ClipboardManager clipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                clipboardManager.setPrimaryClip(ClipData.newPlainText("error", builder));
+            }
+        });
+
+        resetButton.setOnClickListener(v -> {
+            Remapper.wipePreferences(v.getContext());
+            manager = new RemapperManager(this, builder);
+        });
     }
 
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        updateRawKeyEventState(event);
         return manager.handleKeyEventInput(this, event, this) || super.dispatchKeyEvent(event);
     }
 
@@ -79,7 +124,22 @@ public class MainActivity extends Activity implements GamepadHandler {
         if (device != null) {
             deadzoneTextview.setText(device.toString());
         }
+        updateRawMotionEventState(event);
         return manager.handleMotionEventInput(this, event, this) || super.dispatchGenericMotionEvent(event);
+    }
+
+    /** stolen from the lib */
+    private static float getRemappedValue(int mappedSource, KeyEvent keyEvent) {
+        if (keyEvent.getAction() == KeyEvent.ACTION_DOWN || keyEvent.getAction() == KeyEvent.ACTION_MULTIPLE) {
+            // Special case for DPADs, there are never remapped to anything else. So we consider them properly mapped.
+            if ((mappedSource == AXIS_HAT_Y && keyEvent.getKeyCode() == KEYCODE_DPAD_UP)
+                    || (mappedSource == AXIS_HAT_X && keyEvent.getKeyCode() == KEYCODE_DPAD_LEFT)
+            ) {
+                return -1f;
+            }
+            return 1f;
+        }
+        return 0f;
     }
 
     /**
@@ -90,6 +150,7 @@ public class MainActivity extends Activity implements GamepadHandler {
      *              For Axis, the value of the axis. Varies between 0/1 or -1/1 depending on the axis.
      */
     public void handleGamepadInput(int code, float value) {
+        updateRemappedGamepadState(code, value);
         switch (code) {
             case KEYCODE_BUTTON_A:
                 setImageIfPositiveValue(fr.spse.gamepad_remapper.R.drawable.button_a, value);
@@ -162,6 +223,53 @@ public class MainActivity extends Activity implements GamepadHandler {
                 setImageIfPositiveValue(fr.spse.gamepad_remapper.R.drawable.trigger_left, value);
                 break;
         }
+    }
+
+    private void updateRemappedGamepadState(int event, float state) {
+        lastRemappedGamepadState.put(getKey(event), state);
+        lastStateTextview.setText(buildStateToString(lastRemappedGamepadState));
+    }
+
+    public static String actionToString(int action) {
+        switch (action) {
+            case KeyEvent.ACTION_DOWN:
+                return "DOWN";
+            case KeyEvent.ACTION_UP:
+                return "UP";
+            case KeyEvent.ACTION_MULTIPLE:
+                return "MULTIPLE";
+            default:
+                return Integer.toString(action);
+        }
+    }
+
+    private void updateRawKeyEventState(KeyEvent event) {
+        lastRawGamepadState.put(KeyEvent.keyCodeToString(event.getKeyCode()).replace("KEYCODE_", ""), actionToString(event.getAction()));
+        lastRawStateTextView.setText(buildStateToString(lastRawGamepadState));
+    }
+
+    private void updateRawMotionEventState(MotionEvent event) {
+        for (int axis : SUPPORTED_AXIS) {
+            lastRawGamepadState.put(MotionEvent.axisToString(axis), String.valueOf(event.getAxisValue(axis)));
+        }
+        lastRawStateTextView.setText(buildStateToString(lastRawGamepadState));
+    }
+
+
+    private static String getKey(int event) {
+        String key = MotionEvent.axisToString(event);
+        if (key.equals(Integer.toString(event))) {
+            key = KeyEvent.keyCodeToString(event);
+        }
+        return key;
+    }
+
+    private static CharSequence buildStateToString(Map<String, ?> map) {
+        StringBuilder builder = new StringBuilder();
+        for (Map.Entry<String, ?> test : map.entrySet()) {
+            builder.append(test.getKey()).append(" : ").append(test.getValue()).append('\n');
+        }
+        return builder;
     }
 
     private void setImageIfPositiveValue(int imageId, float value) {

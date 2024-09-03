@@ -374,6 +374,11 @@ public class RemapperView extends TextView {
 
         private Listener listener;
 
+        /** Variant usually used in tadem with the {@link RemapperManager} */
+        public Builder() {
+            this(null);
+        }
+
         /**
          * @param listener The listener to which the Remapper object is passed after remapping
          */

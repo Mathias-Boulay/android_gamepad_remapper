@@ -15,7 +15,7 @@ import static android.view.MotionEvent.AXIS_Y;
 import static android.view.MotionEvent.AXIS_Z;
 
 public class Settings {
-    /* Yes it is meant to be package private */
+
     public final static int[] SUPPORTED_AXIS = new int[]{AXIS_HAT_X, AXIS_HAT_Y, AXIS_RX, AXIS_RY, AXIS_X, AXIS_Y, AXIS_Z, AXIS_RZ, AXIS_GAS, AXIS_BRAKE, AXIS_THROTTLE, AXIS_RTRIGGER, AXIS_LTRIGGER};
 
     /**

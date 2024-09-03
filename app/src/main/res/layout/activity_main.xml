@@ -7,21 +7,75 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        >
+
+        <Button
+            android:id="@+id/reset_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/reset_all_mappings" />
+        <Button
+            android:id="@+id/export_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/export_mapping_file" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            style="@android:style/TextAppearance.DeviceDefault.Large"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:text="@string/title_last_triggered_input" />
+
+        <ImageView
+            android:id="@+id/image_view"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:elevation="-1dp"
+            android:scaleType="fitCenter"
+
+            />
+    </LinearLayout>
+
+
     <TextView
         style="@android:style/TextAppearance.DeviceDefault.Large"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="@string/title_last_triggered_input" />
-
-    <ImageView
-        android:id="@+id/image_view"
+        android:text="Gamepad state\nRemapped / Raw" />
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:elevation="-1dp"
-        android:scaleType="fitCenter"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/last_state"
+            android:layout_weight="1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            tools:text="KEYCODE_BUTTON_B"/>
 
-        />
+        <TextView
+            android:id="@+id/last_raw_state"
+            android:layout_weight="1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            tools:text="KEYCODE_BUTTON_A"/>
+    </LinearLayout>
+
+
 
     <TextView
         style="@android:style/TextAppearance.DeviceDefault.Large"

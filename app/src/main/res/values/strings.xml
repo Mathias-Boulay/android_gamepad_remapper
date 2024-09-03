@@ -2,4 +2,6 @@
     <string name="app_name">Gamepad Remapper Demo</string>
     <string name="title_last_triggered_input">Last Triggered input</string>
     <string name="title_gamepad_info">Gamepad info</string>
+    <string name="reset_all_mappings">Reset all mappings</string>
+    <string name="export_mapping_file">Export mapping file</string>
 </resources>

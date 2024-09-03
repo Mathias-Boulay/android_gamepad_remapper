@@ -19,6 +19,8 @@ import static android.view.MotionEvent.AXIS_X;
 import static android.view.MotionEvent.AXIS_Y;
 import static android.view.MotionEvent.AXIS_Z;
 
+import static fr.spse.gamepad_remapper.Settings.SUPPORTED_AXIS;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
@@ -239,7 +241,7 @@ public class Remapper {
         float y = getRemappedValue(verticalAxis, event);
 
         double magnitude = getMagnitude(x, y);
-        float deadzone = getDeadzone(event, horizontalAxis); // FIXME should we query both axis ?
+        float deadzone = getDeadzone(event, getRemappedSource(event, horizontalAxis)); // FIXME should we query both axis ?
         if (magnitude < deadzone) {
             x = 0;
             y = 0;
@@ -303,7 +305,7 @@ public class Remapper {
     /**
      * Get the converted value for the given mapped source
      */
-    private float getRemappedValue(int mappedSource, KeyEvent keyEvent) {
+    private static float getRemappedValue(int mappedSource, KeyEvent keyEvent) {
         if (keyEvent.getAction() == KeyEvent.ACTION_DOWN || keyEvent.getAction() == KeyEvent.ACTION_MULTIPLE) {
             // Special case for DPADs, there are never remapped to anything else. So we consider them properly mapped.
             if ((mappedSource == AXIS_HAT_Y && keyEvent.getKeyCode() == KEYCODE_DPAD_UP)
@@ -320,8 +322,6 @@ public class Remapper {
      * Get the converted value for the given mapped source
      */
     private float getRemappedValue(int orignalSource, MotionEvent motionEvent) {
-        //Integer axis = reverseMotionMap.get(mappedSource);
-        //if(axis == null) axis = mappedSource;
         int mappedSource = getRemappedSource(motionEvent, orignalSource);
 
         if (isAxis(mappedSource)) {
@@ -344,13 +344,10 @@ public class Remapper {
      * @return Whether the input source is a **gamepad** axis.
      */
     private boolean isAxis(int inputSource) {
-        return inputSource == AXIS_X || inputSource == AXIS_Y
-                || inputSource == AXIS_Z || inputSource == AXIS_RZ
-                || inputSource == AXIS_BRAKE || inputSource == AXIS_THROTTLE
-                || inputSource == AXIS_LTRIGGER || inputSource == AXIS_RTRIGGER
-                || inputSource == AXIS_HAT_X || inputSource == AXIS_HAT_Y;
-
-
+        for (int axis : SUPPORTED_AXIS) {
+            if (axis == inputSource) return true;
+        }
+        return false;
     }
 }
 

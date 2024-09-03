@@ -46,7 +46,7 @@ Consider the following code block, which integrates the entire lib into the acti
  ```java
 class MyActivity extends Activity implements GamepadHandler {
 		// The RemapperView.Builder object allows you to set which buttons to remap
-		private RemapperManager inputManager = new RemapperManager(this, new RemapperView.Builder(null)
+		private RemapperManager inputManager = new RemapperManager(this, new RemapperView.Builder()
 			.remapDpad(true)  
 			.remapLeftJoystick(true)  
 			.remapRightJoystick(true)
