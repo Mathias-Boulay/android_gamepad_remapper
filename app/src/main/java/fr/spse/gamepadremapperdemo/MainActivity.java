@@ -226,7 +226,7 @@ public class MainActivity extends Activity implements GamepadHandler {
     }
 
     private void updateRemappedGamepadState(int event, float state) {
-        lastRemappedGamepadState.put(getKey(event), state);
+        lastRemappedGamepadState.put(getKey(event), roundDecimal(state));
         lastStateTextview.setText(buildStateToString(lastRemappedGamepadState));
     }
 
@@ -250,7 +250,7 @@ public class MainActivity extends Activity implements GamepadHandler {
 
     private void updateRawMotionEventState(MotionEvent event) {
         for (int axis : SUPPORTED_AXIS) {
-            lastRawGamepadState.put(MotionEvent.axisToString(axis), String.valueOf(event.getAxisValue(axis)));
+            lastRawGamepadState.put(MotionEvent.axisToString(axis), String.valueOf(roundDecimal(event.getAxisValue(axis))));
         }
         lastRawStateTextView.setText(buildStateToString(lastRawGamepadState));
     }
@@ -282,5 +282,9 @@ public class MainActivity extends Activity implements GamepadHandler {
         if (Math.abs(value) >= 0) {
             imageView.setImageDrawable(getResources().getDrawable(imageId, getTheme()));
         }
+    }
+
+    private float roundDecimal(float input) {
+        return (float) (Math.round(input * 100.0) / 100.0);
     }
 }
